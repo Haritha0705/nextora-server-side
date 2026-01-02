@@ -1,4 +1,4 @@
-package lk.iit.campus.common.enums;
+package lk.iit.nextora.common.enums;
 
 public enum UserRole {
     STUDENT,
