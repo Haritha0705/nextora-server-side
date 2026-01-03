@@ -1,61 +1,42 @@
-package lk.iit.nextora.module.auth.dto.request;
+package lk.iit.nextora.module.user.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
-import lk.iit.nextora.common.enums.StudentRoleType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 /**
- * Student registration request with role-specific fields.
- *
- * - NORMAL: Only basic fields required
- * - CLUB_MEMBER: Requires club-related fields
- * - SENIOR_KUPPI: Requires kuppi-related fields
- * - BATCH_REP: Requires batch representative fields
+ * Request DTO for updating user profile.
+ * Contains common fields and role-specific fields.
+ * Only applicable fields for the user's role will be updated.
  */
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class StudentRegisterRequest extends RegisterRequest {
+public class UpdateProfileRequest {
 
     // ==================== Common Fields ====================
 
-    @NotBlank(message = "Student ID is required")
-    @Size(max = 20, message = "Student ID must not exceed 20 characters")
-    private String studentId;
+    @Size(max = 50, message = "First name must not exceed 50 characters")
+    private String firstName;
 
-    @NotBlank(message = "Batch is required")
-    @Size(max = 50, message = "Batch must not exceed 50 characters")
-    private String batch;
+    @Size(max = 50, message = "Last name must not exceed 50 characters")
+    private String lastName;
 
-    @NotBlank(message = "Program is required")
-    @Size(max = 100, message = "Program must not exceed 100 characters")
-    private String program;
+    @Size(max = 15, message = "Phone must not exceed 15 characters")
+    private String phone;
 
-    @NotBlank(message = "Faculty is required")
-    @Size(max = 50, message = "Faculty must not exceed 50 characters")
-    private String faculty;
-
-    /**
-     * Student sub-role type (defaults to NORMAL if not provided)
-     */
-    private StudentRoleType studentRoleType;
-
-    @Past(message = "Date of birth must be in the past")
-    private LocalDate dateOfBirth;
+    // ==================== Student Common Fields ====================
 
     @Size(max = 200, message = "Address must not exceed 200 characters")
     private String address;
+
+    private LocalDate dateOfBirth;
 
     @Size(max = 50, message = "Guardian name must not exceed 50 characters")
     private String guardianName;
@@ -78,9 +59,6 @@ public class StudentRegisterRequest extends RegisterRequest {
 
     // ==================== SENIOR_KUPPI Specific Fields ====================
 
-    /**
-     * Subjects the student can teach in Kuppi sessions
-     */
     private Set<String> kuppiSubjects;
 
     @Size(max = 20, message = "Experience level must not exceed 20 characters")
@@ -99,6 +77,31 @@ public class StudentRegisterRequest extends RegisterRequest {
 
     private LocalDate batchRepElectedDate;
 
-    @Size(max = 500, message = "Responsibilities must not exceed 500 characters")
+    @Size(max = 500, message = "Batch rep responsibilities must not exceed 500 characters")
     private String batchRepResponsibilities;
+
+    // ==================== Lecturer Fields ====================
+
+    @Size(max = 50, message = "Specialization must not exceed 50 characters")
+    private String specialization;
+
+    @Size(max = 100, message = "Office location must not exceed 100 characters")
+    private String officeLocation;
+
+    @Size(max = 500, message = "Bio must not exceed 500 characters")
+    private String bio;
+
+    private Boolean availableForMeetings;
+
+    // ==================== Staff Fields (Academic & Non-Academic) ====================
+
+    @Size(max = 500, message = "Responsibilities must not exceed 500 characters")
+    private String responsibilities;
+
+    @Size(max = 100, message = "Work location must not exceed 100 characters")
+    private String workLocation;
+
+    @Size(max = 50, message = "Shift must not exceed 50 characters")
+    private String shift;
 }
+

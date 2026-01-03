@@ -1,9 +1,12 @@
 package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
+import lk.iit.nextora.common.enums.StudentRoleType;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "students")
@@ -26,6 +29,11 @@ public class Student extends BaseUser {
     @Column(nullable = false, length = 50)
     private String faculty;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "student_role_type", length = 30)
+    @Builder.Default
+    private StudentRoleType studentRoleType = StudentRoleType.NORMAL;
+
     private LocalDate enrollmentDate;
 
     private LocalDate dateOfBirth;
@@ -39,9 +47,60 @@ public class Student extends BaseUser {
     @Column(length = 15)
     private String guardianPhone;
 
+    // ==================== CLUB_MEMBER Specific Fields ====================
+
+    @Column(length = 100)
+    private String clubName;
+
+    @Column(length = 50)
+    private String clubPosition;
+
+    private LocalDate clubJoinDate;
+
+    @Column(length = 50)
+    private String clubMembershipId;
+
+    // ==================== SENIOR_KUPPI Specific Fields ====================
+
+    @ElementCollection
+    @CollectionTable(name = "student_kuppi_subjects", joinColumns = @JoinColumn(name = "student_id"))
+    @Column(name = "subject")
+    @Builder.Default
+    private Set<String> kuppiSubjects = new HashSet<>();
+
+    @Column(length = 20)
+    private String kuppiExperienceLevel;
+
+    private Integer kuppiSessionsCompleted;
+
+    private Double kuppiRating;
+
+    @Column(length = 500)
+    private String kuppiAvailability;
+
+    // ==================== BATCH_REP Specific Fields ====================
+
+    @Column(length = 10)
+    private String batchRepYear;
+
+    @Column(length = 20)
+    private String batchRepSemester;
+
+    private LocalDate batchRepElectedDate;
+
+    @Column(length = 500)
+    private String batchRepResponsibilities;
+
     @Override
     public String getUserType() {
         return "STUDENT";
+    }
+
+    /**
+     * Get student sub-role display name
+     */
+    public String getStudentRoleDisplayName() {
+        return studentRoleType != null ? studentRoleType.getDisplayName() : StudentRoleType.NORMAL.getDisplayName();
     }
 }
 

@@ -1,0 +1,25 @@
+package lk.iit.nextora.module.user.dto.response;
+
+import lk.iit.nextora.common.enums.UserRole;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Summary DTO for user lists
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserSummaryResponse {
+
+    private Long id;
+    private String email;
+    private String fullName;
+    private UserRole role;
+    private String userType;
+    private Boolean active;
+}
+
