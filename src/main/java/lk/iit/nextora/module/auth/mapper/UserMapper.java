@@ -21,13 +21,18 @@ public interface UserMapper {
     // ==================== Student Mappings ====================
 
     /**
-     * Map StudentRegisterRequest to Student entity
+     * Map StudentRegisterRequest to Student entity.
+     * Maps all fields including role-specific fields.
+     * Role-specific fields will only be used if studentRoleType matches.
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "phoneNumber", source = "phone")
     @Mapping(target = "enrollmentDate", ignore = true)
+    @Mapping(target = "studentRoleType", expression = "java(request.getStudentRoleType() != null ? request.getStudentRoleType() : lk.iit.nextora.common.enums.StudentRoleType.NORMAL)")
+    @Mapping(target = "kuppiSessionsCompleted", constant = "0")
+    @Mapping(target = "kuppiRating", constant = "0.0")
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -41,6 +46,9 @@ public interface UserMapper {
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "phoneNumber", source = "phone")
+    @Mapping(target = "studentRoleType", ignore = true)
+    @Mapping(target = "kuppiSessionsCompleted", ignore = true)
+    @Mapping(target = "kuppiRating", ignore = true)
     void updateStudentFromRequest(StudentRegisterRequest request, @MappingTarget Student student);
 
     // ==================== Lecturer Mappings ====================

@@ -128,6 +128,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void updateStudentFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
+        // Update common student fields
         if (request.getAddress() != null) {
             student.setAddress(StringUtils.trim(request.getAddress()));
         }
@@ -139,6 +140,60 @@ public class UserServiceImpl implements UserService {
         }
         if (request.getGuardianPhone() != null) {
             student.setGuardianPhone(StringUtils.trim(request.getGuardianPhone()));
+        }
+
+        // Update role-specific fields based on current studentRoleType
+        if (student.getStudentRoleType() != null) {
+            switch (student.getStudentRoleType()) {
+                case CLUB_MEMBER -> updateClubMemberFields(student, request);
+                case SENIOR_KUPPI -> updateSeniorKuppiFields(student, request);
+                case BATCH_REP -> updateBatchRepFields(student, request);
+                default -> {
+                    // NORMAL student - no extra fields
+                }
+            }
+        }
+    }
+
+    private void updateClubMemberFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
+        if (request.getClubName() != null) {
+            student.setClubName(StringUtils.trim(request.getClubName()));
+        }
+        if (request.getClubPosition() != null) {
+            student.setClubPosition(StringUtils.trim(request.getClubPosition()));
+        }
+        if (request.getClubJoinDate() != null) {
+            student.setClubJoinDate(request.getClubJoinDate());
+        }
+        if (request.getClubMembershipId() != null) {
+            student.setClubMembershipId(StringUtils.trim(request.getClubMembershipId()));
+        }
+    }
+
+    private void updateSeniorKuppiFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
+        if (request.getKuppiSubjects() != null && !request.getKuppiSubjects().isEmpty()) {
+            student.setKuppiSubjects(request.getKuppiSubjects());
+        }
+        if (request.getKuppiExperienceLevel() != null) {
+            student.setKuppiExperienceLevel(StringUtils.trim(request.getKuppiExperienceLevel()));
+        }
+        if (request.getKuppiAvailability() != null) {
+            student.setKuppiAvailability(StringUtils.trim(request.getKuppiAvailability()));
+        }
+    }
+
+    private void updateBatchRepFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
+        if (request.getBatchRepYear() != null) {
+            student.setBatchRepYear(StringUtils.trim(request.getBatchRepYear()));
+        }
+        if (request.getBatchRepSemester() != null) {
+            student.setBatchRepSemester(StringUtils.trim(request.getBatchRepSemester()));
+        }
+        if (request.getBatchRepElectedDate() != null) {
+            student.setBatchRepElectedDate(request.getBatchRepElectedDate());
+        }
+        if (request.getBatchRepResponsibilities() != null) {
+            student.setBatchRepResponsibilities(StringUtils.trim(request.getBatchRepResponsibilities()));
         }
     }
 

@@ -170,6 +170,56 @@ public final class SecurityUtils {
         return hasRole("ROLE_LECTURER");
     }
 
+    // ==================== Student Sub-Role Checks ====================
+
+    /**
+     * Get current student's sub-role type
+     */
+    public static Optional<lk.iit.nextora.common.enums.StudentRoleType> getCurrentStudentRoleType() {
+        return getCurrentUser()
+                .filter(user -> user instanceof lk.iit.nextora.module.auth.entity.Student)
+                .map(user -> ((lk.iit.nextora.module.auth.entity.Student) user).getStudentRoleType());
+    }
+
+    /**
+     * Check if current student has specific sub-role
+     */
+    public static boolean hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType roleType) {
+        return getCurrentStudentRoleType()
+                .map(type -> type == roleType)
+                .orElse(false);
+    }
+
+    /**
+     * Check if current user is a Club Member student
+     */
+    public static boolean isClubMember() {
+        return hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.CLUB_MEMBER);
+    }
+
+    /**
+     * Check if current user is a Senior Kuppi Mentor
+     */
+    public static boolean isSeniorKuppi() {
+        return hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI);
+    }
+
+    /**
+     * Check if current user is a Batch Representative
+     */
+    public static boolean isBatchRep() {
+        return hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.BATCH_REP);
+    }
+
+    /**
+     * Check if current student has any special sub-role (not NORMAL)
+     */
+    public static boolean hasSpecialStudentRole() {
+        return getCurrentStudentRoleType()
+                .map(type -> type != lk.iit.nextora.common.enums.StudentRoleType.NORMAL)
+                .orElse(false);
+    }
+
     // ==================== Owner Checks ====================
 
     /**

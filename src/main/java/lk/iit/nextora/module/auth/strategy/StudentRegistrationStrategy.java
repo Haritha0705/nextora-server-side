@@ -1,6 +1,9 @@
 package lk.iit.nextora.module.auth.strategy;
 
+import lk.iit.nextora.common.enums.StudentRoleType;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
+import lk.iit.nextora.common.util.StringUtils;
+import lk.iit.nextora.common.util.ValidationUtils;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.dto.request.StudentRegisterRequest;
 import lk.iit.nextora.module.auth.entity.BaseUser;
@@ -23,11 +26,9 @@ public class StudentRegistrationStrategy implements RegistrationStrategy {
 
     @Override
     public void validate(RegisterRequest request) {
-        if (!(request instanceof StudentRegisterRequest)) {
+        if (!(request instanceof StudentRegisterRequest studentRequest)) {
             throw new BadRequestException("Invalid request type for student registration");
         }
-
-        StudentRegisterRequest studentRequest = (StudentRegisterRequest) request;
 
         // Check if student ID already exists
         if (studentRepository.existsByStudentId(studentRequest.getStudentId())) {
@@ -38,6 +39,36 @@ public class StudentRegistrationStrategy implements RegistrationStrategy {
         if (studentRequest.getDateOfBirth() != null) {
             if (studentRequest.getDateOfBirth().isAfter(LocalDate.now().minusYears(16))) {
                 throw new BadRequestException("Student must be at least 16 years old");
+            }
+        }
+
+        // Validate role-specific fields based on studentRoleType
+        StudentRoleType roleType = studentRequest.getStudentRoleType();
+        if (roleType != null && roleType != StudentRoleType.NORMAL) {
+            validateRoleSpecificFields(studentRequest, roleType);
+        }
+    }
+
+    /**
+     * Validate required fields based on student sub-role type
+     */
+    private void validateRoleSpecificFields(StudentRegisterRequest request, StudentRoleType roleType) {
+        switch (roleType) {
+            case CLUB_MEMBER -> {
+                ValidationUtils.requireNonBlank(request.getClubName(), "Club name");
+                ValidationUtils.requireNonBlank(request.getClubPosition(), "Club position");
+                ValidationUtils.requireNonNull(request.getClubJoinDate(), "Club join date");
+            }
+            case SENIOR_KUPPI -> {
+                ValidationUtils.requireNonEmpty(request.getKuppiSubjects(), "Kuppi subjects");
+                ValidationUtils.requireNonBlank(request.getKuppiExperienceLevel(), "Experience level");
+            }
+            case BATCH_REP -> {
+                ValidationUtils.requireNonBlank(request.getBatchRepYear(), "Batch representative year");
+                ValidationUtils.requireNonBlank(request.getBatchRepSemester(), "Batch representative semester");
+            }
+            default -> {
+                // NORMAL - no extra validation needed
             }
         }
     }
@@ -60,7 +91,9 @@ public class StudentRegistrationStrategy implements RegistrationStrategy {
     @Override
     public void postRegistration(BaseUser user) {
         Student student = (Student) user;
-        log.info("Student registered successfully: {} - {}",
-                student.getStudentId(), student.getEmail());
+        log.info("Student registered successfully: {} - {} [Sub-Role: {}]",
+                student.getStudentId(),
+                StringUtils.maskEmail(student.getEmail()),
+                student.getStudentRoleDisplayName());
     }
 }
