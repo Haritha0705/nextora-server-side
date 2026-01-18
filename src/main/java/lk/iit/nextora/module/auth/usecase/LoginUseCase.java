@@ -51,6 +51,14 @@ public class LoginUseCase {
                 .orElse(null);
 
         if (user != null) {
+            // Check if email is pending verification
+            if (UserStatus.PENDING_VERIFICATION.equals(user.getStatus())) {
+                log.warn("Login attempt for unverified account: {}", StringUtils.maskEmail(request.getEmail()));
+                throw new BadRequestException(
+                        "Your email is not verified. Please check your email and click the verification link to activate your account."
+                );
+            }
+
             // Check if account is suspended
             if (UserStatus.SUSPENDED.equals(user.getStatus())) {
                 // Check if it's a new day - auto-unlock if suspension was from a previous day

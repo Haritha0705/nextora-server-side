@@ -2,6 +2,8 @@ package lk.iit.nextora.module.auth.usecase;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lk.iit.nextora.common.enums.UserRole;
+import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.common.util.ValidationUtils;
@@ -13,6 +15,7 @@ import lk.iit.nextora.module.auth.factory.RegistrationStrategyFactory;
 import lk.iit.nextora.module.auth.mapper.AuthMapper;
 import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
+import lk.iit.nextora.module.auth.service.EmailVerificationService;
 import lk.iit.nextora.module.auth.strategy.RegistrationStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +38,7 @@ public class RegisterUseCase {
     private final RegistrationStrategyFactory registrationStrategyFactory;
     private final AuthMapper authMapper;
     private final UserResponseMapper userResponseMapper;
+    private final EmailVerificationService emailVerificationService;
 
     public AuthResponse execute(RegisterRequest request) {
         // Validate input using ValidationUtils
@@ -74,6 +78,16 @@ public class RegisterUseCase {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
+        // Set status based on role:
+        // Admin and SuperAdmin are ACTIVE immediately (no email verification needed)
+        // All other roles need email verification
+        boolean requiresEmailVerification = !isAdminRole(request.getRole());
+        if (requiresEmailVerification) {
+            user.setStatus(UserStatus.PENDING_VERIFICATION);
+        } else {
+            user.setStatus(UserStatus.ACTIVE);
+        }
+
         // Persist user
         entityManager.persist(user);
         entityManager.flush();
@@ -81,7 +95,19 @@ public class RegisterUseCase {
         // Post-registration processing
         strategy.postRegistration(user);
 
-        // Generate tokens
+        // Send verification email for non-admin users
+        if (requiresEmailVerification) {
+            emailVerificationService.sendVerificationEmail(user);
+            log.info("Verification email sent to: {}", StringUtils.maskEmail(user.getEmail()));
+
+            // Return response without tokens (user cannot login until verified)
+            return authMapper.toPendingVerificationResponse(
+                    user,
+                    "Registration successful. Please check your email to verify your account."
+            );
+        }
+
+        // Generate tokens only for admin users (who don't need verification)
         String accessToken = tokenProvider.generateAccessToken(user);
         String refreshToken = tokenProvider.generateRefreshToken(user);
 
@@ -96,5 +122,12 @@ public class RegisterUseCase {
                 tokenProvider.getAccessTokenExpiryDate(),
                 userResponseMapper.extractRoleSpecificData(user)
         );
+    }
+
+    /**
+     * Check if role is Admin or SuperAdmin (exempt from email verification)
+     */
+    private boolean isAdminRole(UserRole role) {
+        return UserRole.ROLE_ADMIN.equals(role) || UserRole.ROLE_SUPER_ADMIN.equals(role);
     }
 }

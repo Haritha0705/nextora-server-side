@@ -27,4 +27,8 @@ public class AuthResponse {
     private String userType;
 
     private Object roleSpecificData;
+
+    // Email verification fields
+    private String message;
+    private Boolean emailVerified;
 }
