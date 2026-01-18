@@ -103,4 +103,11 @@ public enum UserRole {
     private static Set<Permission> getAdminPermissions() {
         return new HashSet<>(Arrays.asList(Permission.values()));
     }
+
+    /**
+     * Check if this role has a specific permission
+     */
+    public boolean hasPermission(Permission permission) {
+        return permissions.contains(permission);
+    }
 }

@@ -1,24 +1,212 @@
 package lk.iit.nextora.config.security;
 
+import lk.iit.nextora.common.enums.Permission;
+import lk.iit.nextora.common.enums.StudentRoleType;
+import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.module.auth.entity.BaseUser;
+import lk.iit.nextora.module.auth.entity.Student;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.Optional;
+
 /**
- * Provides details about the currently logged-in user
+ * Provides security-related utilities for the currently logged-in user
  */
 @Service
 public class SecurityService {
 
-    public Long getCurrentUserId() {
+    /**
+     * Get the current authenticated user
+     */
+    public Optional<BaseUser> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Unauthenticated user");
+            return Optional.empty();
         }
 
         Object principal = authentication.getPrincipal();
-        if (principal instanceof BaseUser user) return user.getId();
-        throw new RuntimeException("Principal is not BaseUser");
+        if (principal instanceof BaseUser user) {
+            return Optional.of(user);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Get the current user ID
+     */
+    public Long getCurrentUserId() {
+        return getCurrentUser()
+                .map(BaseUser::getId)
+                .orElseThrow(() -> new RuntimeException("Unauthenticated user"));
+    }
+
+    /**
+     * Get the current user's email
+     */
+    public String getCurrentUserEmail() {
+        return getCurrentUser()
+                .map(BaseUser::getEmail)
+                .orElseThrow(() -> new RuntimeException("Unauthenticated user"));
+    }
+
+    /**
+     * Get the current user's role
+     */
+    public UserRole getCurrentUserRole() {
+        return getCurrentUser()
+                .map(BaseUser::getRole)
+                .orElseThrow(() -> new RuntimeException("Unauthenticated user"));
+    }
+
+    /**
+     * Get the current student's sub-role type (only for students)
+     */
+    public Optional<StudentRoleType> getCurrentStudentRoleType() {
+        return getCurrentUser()
+                .filter(user -> user instanceof Student)
+                .map(user -> ((Student) user).getStudentRoleType());
+    }
+
+    /**
+     * Check if the current user has a specific role
+     */
+    public boolean hasRole(UserRole role) {
+        return getCurrentUser()
+                .map(user -> user.getRole() == role)
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user has a specific permission
+     */
+    public boolean hasPermission(Permission permission) {
+        return getCurrentUser()
+                .map(user -> user.hasPermission(permission))
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user has a specific permission by string
+     */
+    public boolean hasPermission(String permissionString) {
+        return getCurrentUser()
+                .map(user -> user.hasPermission(permissionString))
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user has any of the specified roles
+     */
+    public boolean hasAnyRole(UserRole... roles) {
+        return getCurrentUser()
+                .map(user -> {
+                    for (UserRole role : roles) {
+                        if (user.getRole() == role) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user has any of the specified permissions
+     */
+    public boolean hasAnyPermission(Permission... permissions) {
+        return getCurrentUser()
+                .map(user -> {
+                    for (Permission permission : permissions) {
+                        if (user.hasPermission(permission)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user is a Super Admin
+     */
+    public boolean isSuperAdmin() {
+        return hasRole(UserRole.ROLE_SUPER_ADMIN);
+    }
+
+    /**
+     * Check if the current user is an Admin (includes Super Admin)
+     */
+    public boolean isAdmin() {
+        return hasAnyRole(UserRole.ROLE_ADMIN, UserRole.ROLE_SUPER_ADMIN);
+    }
+
+    /**
+     * Check if the current user is a Student
+     */
+    public boolean isStudent() {
+        return hasRole(UserRole.ROLE_STUDENT);
+    }
+
+    /**
+     * Check if the current user is a Lecturer
+     */
+    public boolean isLecturer() {
+        return hasRole(UserRole.ROLE_LECTURER);
+    }
+
+    /**
+     * Check if the current user is a Senior Kuppi mentor
+     */
+    public boolean isSeniorKuppi() {
+        return getCurrentStudentRoleType()
+                .map(type -> type == StudentRoleType.SENIOR_KUPPI)
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user is a Batch Representative
+     */
+    public boolean isBatchRep() {
+        return getCurrentStudentRoleType()
+                .map(type -> type == StudentRoleType.BATCH_REP)
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user is a Club Member
+     */
+    public boolean isClubMember() {
+        return getCurrentStudentRoleType()
+                .map(type -> type == StudentRoleType.CLUB_MEMBER)
+                .orElse(false);
+    }
+
+    /**
+     * Get all authorities of the current user
+     */
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getCurrentUser()
+                .map(BaseUser::getAuthorities)
+                .orElse(null);
+    }
+
+    /**
+     * Check if the current user owns a resource
+     */
+    public boolean isOwner(Long resourceOwnerId) {
+        return getCurrentUser()
+                .map(user -> user.getId().equals(resourceOwnerId))
+                .orElse(false);
+    }
+
+    /**
+     * Check if the current user can access a resource (owner or admin)
+     */
+    public boolean canAccess(Long resourceOwnerId) {
+        return isOwner(resourceOwnerId) || isAdmin();
     }
 }

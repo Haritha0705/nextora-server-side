@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
+import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
@@ -34,6 +35,7 @@ public class UserController {
 
     @GetMapping(ApiConstants.USER_ME)
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:READ')")
     @Operation(
             summary = "Get current user profile",
             description = "Retrieve the authenticated user's profile information"
@@ -45,6 +47,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_ME)
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:UPDATE')")
     @Operation(
             summary = "Update current user profile",
             description = "Update the authenticated user's profile information"
@@ -57,6 +60,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_CHANGE_PASSWORD)
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:UPDATE')")
     @Operation(
             summary = "Change password",
             description = "Change the authenticated user's password"
@@ -70,7 +74,7 @@ public class UserController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:READ')")
     @Operation(
             summary = "Get all users",
             description = "Retrieve all users (Admin only)"
@@ -82,7 +86,7 @@ public class UserController {
 
     @GetMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:READ')")
     @Operation(
             summary = "Get user by ID",
             description = "Retrieve a specific user by ID (Admin only)"
@@ -92,9 +96,48 @@ public class UserController {
         return ApiResponse.success("User retrieved successfully", profile);
     }
 
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:CREATE')")
+    @Operation(
+            summary = "Create user",
+            description = "Create a new user - redirects to appropriate endpoint based on role type"
+    )
+    public ApiResponse<UserProfileResponse> createUser(@Valid @RequestBody UpdateProfileRequest request) {
+        UserProfileResponse profile = userService.createUser(request);
+        return ApiResponse.success("User created successfully", profile);
+    }
+
+    @PostMapping("/admin")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(
+            summary = "Create Admin user",
+            description = "Create a new Admin user (Super Admin only). " +
+                    "Note: Super Admin cannot be created via API - only one Super Admin exists in the system (created via DataInitializer)."
+    )
+    public ApiResponse<UserProfileResponse> createAdminUser(@Valid @RequestBody CreateAdminRequest request) {
+        UserProfileResponse profile = userService.createAdminUser(request);
+        return ApiResponse.success("Admin user created successfully", profile);
+    }
+
+    @PutMapping(ApiConstants.USER_BY_ID)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:UPDATE')")
+    @Operation(
+            summary = "Update user by ID",
+            description = "Update a specific user by ID (Admin only)"
+    )
+    public ApiResponse<UserProfileResponse> updateUserById(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        UserProfileResponse profile = userService.updateUserById(id, request);
+        return ApiResponse.success("User updated successfully", profile);
+    }
+
     @DeleteMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:DELETE')")
     @Operation(
             summary = "Delete user",
             description = "Delete (disable) a user by ID (Super Admin only)"
@@ -106,7 +149,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_RESTORE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:ACTIVATE')")
     @Operation(
             summary = "Restore user",
             description = "Restore a deleted user by ID (Super Admin only)"
@@ -114,6 +157,42 @@ public class UserController {
     public ApiResponse<Void> restoreUser(@PathVariable Long id) {
         userService.restoreUser(id);
         return ApiResponse.success("User restored successfully", null);
+    }
+
+    @PutMapping(ApiConstants.USER_BY_ID + "/activate")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:ACTIVATE')")
+    @Operation(
+            summary = "Activate user",
+            description = "Activate a user account (Admin only)"
+    )
+    public ApiResponse<Void> activateUser(@PathVariable Long id) {
+        userService.activateUser(id);
+        return ApiResponse.success("User activated successfully", null);
+    }
+
+    @PutMapping(ApiConstants.USER_BY_ID + "/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:ACTIVATE')")
+    @Operation(
+            summary = "Deactivate user",
+            description = "Deactivate a user account (Admin only)"
+    )
+    public ApiResponse<Void> deactivateUser(@PathVariable Long id) {
+        userService.deactivateUser(id);
+        return ApiResponse.success("User deactivated successfully", null);
+    }
+
+    @PutMapping(ApiConstants.USER_BY_ID + "/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:RESET_PASSWORD')")
+    @Operation(
+            summary = "Reset user password",
+            description = "Reset a user's password (Super Admin only)"
+    )
+    public ApiResponse<Void> resetUserPassword(@PathVariable Long id) {
+        userService.resetUserPassword(id);
+        return ApiResponse.success("Password reset email sent successfully", null);
     }
 }
 
