@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
+import lk.iit.nextora.common.enums.Permission;
 import lk.iit.nextora.common.enums.StudentRoleType;
 import lombok.*;
 
@@ -101,6 +102,17 @@ public class Student extends BaseUser {
      */
     public String getStudentRoleDisplayName() {
         return studentRoleType != null ? studentRoleType.getDisplayName() : StudentRoleType.NORMAL.getDisplayName();
+    }
+
+    /**
+     * Returns additional permissions based on student sub-role type
+     */
+    @Override
+    protected Set<Permission> getAdditionalPermissions() {
+        if (studentRoleType != null) {
+            return studentRoleType.getAdditionalPermissions();
+        }
+        return StudentRoleType.NORMAL.getAdditionalPermissions();
     }
 }
 

@@ -2,6 +2,7 @@ package lk.iit.nextora.module.user.service.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
@@ -12,8 +13,10 @@ import lk.iit.nextora.config.redis.CacheService;
 import lk.iit.nextora.config.redis.RedisConfig.CacheNames;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
+import lk.iit.nextora.module.auth.repository.AdminRepository;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
+import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
@@ -27,6 +30,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 import java.time.Duration;
 import java.util.List;
@@ -54,6 +59,7 @@ public class UserServiceImpl implements UserService {
     private final UserResponseMapper userResponseMapper;
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
+    private final AdminRepository adminRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -363,6 +369,291 @@ public class UserServiceImpl implements UserService {
         cacheService.evictAllUserCaches(id);
 
         log.info("User restored successfully: {}", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public UserProfileResponse createUser(UpdateProfileRequest request) {
+        log.info("Creating new user by admin");
+
+        // Check if current user has permission
+        ValidationUtils.requireTrue(
+                SecurityUtils.isSuperAdmin(),
+                "Only super admin can create users"
+        );
+
+        /*
+         * User Creation Strategy:
+         * ========================
+         * 1. STUDENTS, LECTURERS, ACADEMIC_STAFF, NON_ACADEMIC_STAFF
+         *    → Should self-register via /api/v1/auth/register endpoint
+         *    → This allows email verification and proper onboarding
+         *
+         * 2. ADMIN users
+         *    → Can ONLY be created by Super Admin via this endpoint
+         *    → No self-registration allowed for security
+         *
+         * 3. SUPER_ADMIN users
+         *    → Can ONLY be created by existing Super Admin
+         *    → First Super Admin created via DataInitializer
+         *
+         * For Admin/SuperAdmin creation, use the dedicated endpoint:
+         * POST /api/v1/users/admin (to be implemented if needed)
+         *
+         * For now, redirect to registration for other user types
+         */
+
+        throw new UnsupportedOperationException(
+                "For Students, Lecturers, and Staff: Use POST /api/v1/auth/register endpoint. " +
+                "For Admin users: Use POST /api/v1/users/admin endpoint."
+        );
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public UserProfileResponse createAdminUser(CreateAdminRequest request) {
+        log.info("Creating admin user with email: {}", StringUtils.maskEmail(request.getEmail()));
+
+        // Check if current user is super admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isSuperAdmin(),
+                "Only super admin can create admin users"
+        );
+
+        // Check if email already exists
+        ValidationUtils.requireFalse(
+                authenticationService.findUserByEmail(request.getEmail()).isPresent(),
+                "Email already registered"
+        );
+
+        // Check if adminId already exists
+        ValidationUtils.requireFalse(
+                adminRepository.existsByAdminId(request.getAdminId()),
+                "Admin ID '" + request.getAdminId() + "' already exists. Please use a different Admin ID."
+        );
+
+        // Create Admin user (only Admin can be created, not Super Admin)
+        // Super Admin is unique and created only via DataInitializer
+        Admin admin = new Admin();
+        admin.setEmail(request.getEmail());
+        admin.setPassword(passwordEncoder.encode(request.getPassword()));
+        admin.setFirstName(request.getFirstName());
+        admin.setLastName(request.getLastName());
+        admin.setPhoneNumber(request.getPhone());
+        admin.setRole(UserRole.ROLE_ADMIN);
+        admin.setAdminId(request.getAdminId());
+        admin.setDepartment(request.getDepartment());
+        admin.setAssignedDate(LocalDate.now());
+        if (request.getPermissions() != null) {
+            admin.setPermissions(request.getPermissions());
+        }
+        admin.setStatus(UserStatus.ACTIVE);
+
+        Admin createdAdmin = adminRepository.save(admin);
+        log.info("Admin user created successfully: {}", StringUtils.maskEmail(request.getEmail()));
+
+        // Evict users list cache
+        cacheService.evictUsersList();
+
+        return userProfileMapper.toFullProfileResponse(createdAdmin, userResponseMapper);
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public UserProfileResponse updateUserById(Long id, UpdateProfileRequest request) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Updating user with ID: {}", id);
+
+        // Check if current user is admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can update other users"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Update common fields if provided
+        updateCommonFields(user, request);
+
+        // Update role-specific fields based on user type
+        updateRoleSpecificFields(user, request);
+
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict user-specific caches
+        cacheService.evictUserProfile(id);
+        cacheService.evictUsersList();
+
+        log.info("User updated successfully: {}", StringUtils.maskEmail(user.getEmail()));
+        return userProfileMapper.toFullProfileResponse(user, userResponseMapper);
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void activateUser(Long id) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Activating user with ID: {}", id);
+
+        // Check if current user is admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can activate users"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        user.setIsActive(true);
+        user.setStatus(UserStatus.ACTIVE);
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        log.info("User activated successfully: {}", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void deactivateUser(Long id) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Deactivating user with ID: {}", id);
+
+        // Check if current user is admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can deactivate users"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Prevent deactivating yourself
+        String currentEmail = SecurityUtils.getCurrentUserEmail()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+        ValidationUtils.requireFalse(
+                user.getEmail().equals(currentEmail),
+                "Cannot deactivate your own account"
+        );
+
+        user.setIsActive(false);
+        user.setStatus(UserStatus.Deactivate);
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        log.info("User deactivated successfully: {}", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id")
+    })
+    public void resetUserPassword(Long id) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Resetting password for user with ID: {}", id);
+
+        // Check if current user is super admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isSuperAdmin(),
+                "Only super admin can reset user passwords"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Generate a temporary password or send password reset email
+        // For now, we'll set a temporary password
+        String tempPassword = generateTemporaryPassword();
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        // TODO: Send email with temporary password or password reset link
+        log.info("Password reset for user: {}. Temporary password generated.", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void unlockUser(Long id) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Unlocking user account with ID: {}", id);
+
+        // Check if current user is admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can unlock user accounts"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Check if user is actually suspended
+        if (!UserStatus.SUSPENDED.equals(user.getStatus())) {
+            log.info("User {} is not suspended, current status: {}",
+                    StringUtils.maskEmail(user.getEmail()), user.getStatus());
+            throw new IllegalStateException("User is not suspended. Current status: " + user.getStatus());
+        }
+
+        // Unlock the account
+        user.setStatus(UserStatus.ACTIVE);
+        user.setFailedLoginAttempts(0);
+        user.setLastFailedLoginAt(null);
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        log.info("User account unlocked successfully: {}", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    /**
+     * Generate a temporary password for password reset
+     */
+    private String generateTemporaryPassword() {
+        // Generate a random 12-character password
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+        StringBuilder password = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        for (int i = 0; i < 12; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return password.toString();
     }
 
     /**

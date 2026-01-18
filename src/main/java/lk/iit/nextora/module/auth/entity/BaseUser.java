@@ -2,6 +2,7 @@ package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;
+import lk.iit.nextora.common.enums.Permission;
 import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.enums.UserStatus;
 import lombok.Getter;
@@ -11,8 +12,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -45,48 +49,70 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     @Column(length = 15)
     private String phoneNumber;
 
-//    @Column(name = "account_locked", nullable = false)
-//    private Boolean accountLocked = false;
-//
-//    @Column(name = "credentials_expired", nullable = false)
-//    private Boolean credentialsExpired = false;
-//
-//    @Column(name = "account_expired", nullable = false)
-//    private Boolean accountExpired = false;
-//
-//    @Column(name = "enabled", nullable = false)
-//    private Boolean enabled = true;
+    /**
+     * Number of consecutive failed login attempts.
+     * Reset to 0 on successful login.
+     * Account is suspended after 5 failed attempts per day (for non-admin users).
+     */
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts = 0;
+
+    /**
+     * Timestamp of the last failed login attempt.
+     * Used to reset attempts for a new day.
+     */
+    @Column(name = "last_failed_login_at")
+    private LocalDateTime lastFailedLoginAt;
 
     @Version
     private Long version;
 
-//    @Override
-//    public boolean isAccountNonExpired() {
-//        return !accountExpired;
-//    }
-//
-//    @Override
-//    public boolean isAccountNonLocked() {
-//        return !accountLocked;
-//    }
-//
-//    @Override
-//    public boolean isCredentialsNonExpired() {
-//        return !credentialsExpired;
-//    }
-//
-//    @Override
-//    public boolean isEnabled() {
-//        return enabled;
-//    }
-
     /**
-     * Returns the user's role as Spring Security GrantedAuthority.
-     * This enables role-based authorization (@PreAuthorize, hasRole, etc.)
+     * Returns the user's role and permissions as Spring Security GrantedAuthorities.
+     * This enables role-based and permission-based authorization (@PreAuthorize, hasRole, hasAuthority, etc.)
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        // Add role as authority
+        authorities.add(new SimpleGrantedAuthority(role.name()));
+
+        // Add all permissions from the role
+        Set<Permission> permissions = role.getPermissions();
+        for (Permission permission : permissions) {
+            authorities.add(new SimpleGrantedAuthority(permission.getPermission()));
+        }
+
+        // Add additional permissions from student sub-role if applicable
+        Set<Permission> additionalPermissions = getAdditionalPermissions();
+        for (Permission permission : additionalPermissions) {
+            authorities.add(new SimpleGrantedAuthority(permission.getPermission()));
+        }
+
+        return authorities;
+    }
+
+    /**
+     * Override in Student entity to return sub-role permissions
+     */
+    protected Set<Permission> getAdditionalPermissions() {
+        return Set.of();
+    }
+
+    /**
+     * Check if user has a specific permission
+     */
+    public boolean hasPermission(Permission permission) {
+        return role.hasPermission(permission) || getAdditionalPermissions().contains(permission);
+    }
+
+    /**
+     * Check if user has a specific permission by string
+     */
+    public boolean hasPermission(String permissionString) {
+        return getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals(permissionString));
     }
 
     /**
@@ -96,6 +122,26 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return status != null && status != UserStatus.SUSPENDED && status != UserStatus.DELETED;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserStatus.ACTIVE.equals(status);
     }
 
     public String getFullName() {
