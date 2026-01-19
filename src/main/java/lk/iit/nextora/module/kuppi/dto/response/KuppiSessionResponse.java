@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Response DTO for Kuppi session details
@@ -43,5 +44,8 @@ public class KuppiSessionResponse {
 
     // Whether session is joinable (time-based)
     private Boolean canJoin;
+
+    // Session notes
+    private List<KuppiNoteResponse> notes;
 }
 

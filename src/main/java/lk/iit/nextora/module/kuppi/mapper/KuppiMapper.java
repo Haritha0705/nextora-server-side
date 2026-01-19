@@ -39,7 +39,19 @@ public interface KuppiMapper {
     @Mapping(target = "hostName", expression = "java(session.getHost().getFullName())")
     @Mapping(target = "hostEmail", source = "host.email")
     @Mapping(target = "canJoin", expression = "java(session.isJoinable())")
+    @Mapping(target = "notes", source = "notes", qualifiedByName = "mapNotesToResponse")
     KuppiSessionResponse toResponse(KuppiSession session);
+
+    @Named("mapNotesToResponse")
+    default List<KuppiNoteResponse> mapNotesToResponse(java.util.Set<KuppiNote> notes) {
+        if (notes == null || notes.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return notes.stream()
+                .filter(note -> !note.getIsDeleted())
+                .map(this::toResponse)
+                .toList();
+    }
 
     List<KuppiSessionResponse> toResponseList(List<KuppiSession> sessions);
 
@@ -62,6 +74,7 @@ public interface KuppiMapper {
     @Mapping(target = "sessionTitle", source = "session.title")
     @Mapping(target = "uploadedById", source = "uploadedBy.id")
     @Mapping(target = "uploaderName", expression = "java(note.getUploadedBy().getFullName())")
+    @Mapping(target = "formattedFileSize", expression = "java(note.getFileSize() != null ? lk.iit.nextora.common.util.FileUtils.formatFileSize(note.getFileSize()) : null)")
     KuppiNoteResponse toResponse(KuppiNote note);
 
     List<KuppiNoteResponse> toNoteResponseList(List<KuppiNote> notes);
