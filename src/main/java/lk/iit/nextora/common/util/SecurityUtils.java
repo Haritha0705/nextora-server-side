@@ -164,30 +164,41 @@ public final class SecurityUtils {
     }
 
     /**
-     * Check if current user is lecturer
+     * Check if current user is academic staff (includes former lecturer role)
      */
-    public static boolean isLecturer() {
-        return hasRole("ROLE_LECTURER");
+    public static boolean isAcademicStaff() {
+        return hasRole("ROLE_ACADEMIC_STAFF");
     }
 
     // ==================== Student Sub-Role Checks ====================
 
     /**
-     * Get current student's sub-role type
+     * Get current student's sub-role types
      */
-    public static Optional<lk.iit.nextora.common.enums.StudentRoleType> getCurrentStudentRoleType() {
+    public static Optional<java.util.Set<lk.iit.nextora.common.enums.StudentRoleType>> getCurrentStudentRoleTypes() {
         return getCurrentUser()
                 .filter(user -> user instanceof lk.iit.nextora.module.auth.entity.Student)
-                .map(user -> ((lk.iit.nextora.module.auth.entity.Student) user).getStudentRoleType());
+                .map(user -> ((lk.iit.nextora.module.auth.entity.Student) user).getStudentRoleTypes());
     }
 
     /**
      * Check if current student has specific sub-role
      */
     public static boolean hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType roleType) {
-        return getCurrentStudentRoleType()
-                .map(type -> type == roleType)
+        return getCurrentUser()
+                .filter(user -> user instanceof lk.iit.nextora.module.auth.entity.Student)
+                .map(user -> ((lk.iit.nextora.module.auth.entity.Student) user).hasRoleType(roleType))
                 .orElse(false);
+    }
+
+    /**
+     * @deprecated Use getCurrentStudentRoleTypes() instead
+     */
+    @Deprecated
+    public static Optional<lk.iit.nextora.common.enums.StudentRoleType> getCurrentStudentRoleType() {
+        return getCurrentUser()
+                .filter(user -> user instanceof lk.iit.nextora.module.auth.entity.Student)
+                .map(user -> ((lk.iit.nextora.module.auth.entity.Student) user).getPrimaryRoleType());
     }
 
     /**
@@ -212,11 +223,11 @@ public final class SecurityUtils {
     }
 
     /**
-     * Check if current student has any special sub-role (not NORMAL)
+     * Check if current student has any special sub-role (not only NORMAL)
      */
     public static boolean hasSpecialStudentRole() {
-        return getCurrentStudentRoleType()
-                .map(type -> type != lk.iit.nextora.common.enums.StudentRoleType.NORMAL)
+        return getCurrentStudentRoleTypes()
+                .map(types -> types.stream().anyMatch(type -> type != lk.iit.nextora.common.enums.StudentRoleType.NORMAL))
                 .orElse(false);
     }
 

@@ -8,8 +8,10 @@ import lk.iit.nextora.common.enums.StudentRoleType;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "students")
@@ -33,10 +35,16 @@ public class Student extends BaseUser {
     @Column(nullable = false, length = 50)
     private FacultyType faculty;
 
+    /**
+     * Multiple student role types - a student can have one or more roles
+     * Every student has at least NORMAL role
+     */
+    @ElementCollection(targetClass = StudentRoleType.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "student_role_types", joinColumns = @JoinColumn(name = "student_id"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "student_role_type", length = 30)
+    @Column(name = "role_type", length = 30)
     @Builder.Default
-    private StudentRoleType studentRoleType = StudentRoleType.NORMAL;
+    private Set<StudentRoleType> studentRoleTypes = EnumSet.of(StudentRoleType.NORMAL);
 
     private LocalDate enrollmentDate;
 
@@ -102,21 +110,104 @@ public class Student extends BaseUser {
     }
 
     /**
-     * Get student sub-role display name
+     * Check if student has a specific role type
      */
-    public String getStudentRoleDisplayName() {
-        return studentRoleType != null ? studentRoleType.getDisplayName() : StudentRoleType.NORMAL.getDisplayName();
+    public boolean hasRoleType(StudentRoleType roleType) {
+        return studentRoleTypes != null && studentRoleTypes.contains(roleType);
     }
 
     /**
-     * Returns additional permissions based on student sub-role type
+     * Add a role type to the student
+     */
+    public void addRoleType(StudentRoleType roleType) {
+        if (studentRoleTypes == null) {
+            studentRoleTypes = EnumSet.of(StudentRoleType.NORMAL);
+        }
+        studentRoleTypes.add(roleType);
+    }
+
+    /**
+     * Remove a role type from the student (cannot remove NORMAL)
+     */
+    public void removeRoleType(StudentRoleType roleType) {
+        if (roleType != StudentRoleType.NORMAL && studentRoleTypes != null) {
+            studentRoleTypes.remove(roleType);
+        }
+    }
+
+    /**
+     * Get student sub-role display names (comma separated)
+     */
+    public String getStudentRoleDisplayName() {
+        if (studentRoleTypes == null || studentRoleTypes.isEmpty()) {
+            return StudentRoleType.NORMAL.getDisplayName();
+        }
+        return studentRoleTypes.stream()
+                .map(StudentRoleType::getDisplayName)
+                .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Get the primary (highest priority) role type for display purposes
+     * Priority: SENIOR_KUPPI > BATCH_REP > CLUB_MEMBER > NORMAL
+     */
+    public StudentRoleType getPrimaryRoleType() {
+        if (studentRoleTypes == null || studentRoleTypes.isEmpty()) {
+            return StudentRoleType.NORMAL;
+        }
+        if (studentRoleTypes.contains(StudentRoleType.SENIOR_KUPPI)) {
+            return StudentRoleType.SENIOR_KUPPI;
+        }
+        if (studentRoleTypes.contains(StudentRoleType.BATCH_REP)) {
+            return StudentRoleType.BATCH_REP;
+        }
+        if (studentRoleTypes.contains(StudentRoleType.CLUB_MEMBER)) {
+            return StudentRoleType.CLUB_MEMBER;
+        }
+        return StudentRoleType.NORMAL;
+    }
+
+    /**
+     * Returns combined additional permissions from all student sub-role types
      */
     @Override
     protected Set<Permission> getAdditionalPermissions() {
-        if (studentRoleType != null) {
-            return studentRoleType.getAdditionalPermissions();
+        if (studentRoleTypes == null || studentRoleTypes.isEmpty()) {
+            return StudentRoleType.NORMAL.getAdditionalPermissions();
         }
-        return StudentRoleType.NORMAL.getAdditionalPermissions();
+
+        Set<Permission> combinedPermissions = new HashSet<>();
+        for (StudentRoleType roleType : studentRoleTypes) {
+            combinedPermissions.addAll(roleType.getAdditionalPermissions());
+        }
+        return combinedPermissions;
+    }
+
+    // ==================== Backward compatibility methods ====================
+
+    /**
+     * @deprecated Use getStudentRoleTypes() instead. This returns the primary role for backward compatibility.
+     */
+    @Deprecated
+    public StudentRoleType getStudentRoleType() {
+        return getPrimaryRoleType();
+    }
+
+    /**
+     * @deprecated Use addRoleType() instead. This sets a single role type for backward compatibility.
+     */
+    @Deprecated
+    public void setStudentRoleType(StudentRoleType roleType) {
+        if (roleType == null) {
+            this.studentRoleTypes = EnumSet.of(StudentRoleType.NORMAL);
+        } else if (roleType == StudentRoleType.NORMAL) {
+            this.studentRoleTypes = EnumSet.of(StudentRoleType.NORMAL);
+        } else {
+            if (this.studentRoleTypes == null) {
+                this.studentRoleTypes = EnumSet.of(StudentRoleType.NORMAL);
+            }
+            this.studentRoleTypes.add(roleType);
+        }
     }
 }
 

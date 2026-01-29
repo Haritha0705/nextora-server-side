@@ -63,12 +63,32 @@ public class SecurityService {
     }
 
     /**
-     * Get the current student's sub-role type (only for students)
+     * Get the current student's sub-role types (only for students)
      */
+    public Optional<java.util.Set<StudentRoleType>> getCurrentStudentRoleTypes() {
+        return getCurrentUser()
+                .filter(user -> user instanceof Student)
+                .map(user -> ((Student) user).getStudentRoleTypes());
+    }
+
+    /**
+     * Check if the current student has a specific role type
+     */
+    public boolean hasStudentRoleType(StudentRoleType roleType) {
+        return getCurrentUser()
+                .filter(user -> user instanceof Student)
+                .map(user -> ((Student) user).hasRoleType(roleType))
+                .orElse(false);
+    }
+
+    /**
+     * @deprecated Use getCurrentStudentRoleTypes() instead
+     */
+    @Deprecated
     public Optional<StudentRoleType> getCurrentStudentRoleType() {
         return getCurrentUser()
                 .filter(user -> user instanceof Student)
-                .map(user -> ((Student) user).getStudentRoleType());
+                .map(user -> ((Student) user).getPrimaryRoleType());
     }
 
     /**
@@ -152,10 +172,10 @@ public class SecurityService {
     }
 
     /**
-     * Check if the current user is a Lecturer
+     * Check if the current user is an Academic Staff (includes former Lecturer role)
      */
-    public boolean isLecturer() {
-        return hasRole(UserRole.ROLE_LECTURER);
+    public boolean isAcademicStaff() {
+        return hasRole(UserRole.ROLE_ACADEMIC_STAFF);
     }
 
     public boolean isNonAcademicstaff() {
@@ -166,27 +186,21 @@ public class SecurityService {
      * Check if the current user is a Senior Kuppi mentor
      */
     public boolean isSeniorKuppi() {
-        return getCurrentStudentRoleType()
-                .map(type -> type == StudentRoleType.SENIOR_KUPPI)
-                .orElse(false);
+        return hasStudentRoleType(StudentRoleType.SENIOR_KUPPI);
     }
 
     /**
      * Check if the current user is a Batch Representative
      */
     public boolean isBatchRep() {
-        return getCurrentStudentRoleType()
-                .map(type -> type == StudentRoleType.BATCH_REP)
-                .orElse(false);
+        return hasStudentRoleType(StudentRoleType.BATCH_REP);
     }
 
     /**
      * Check if the current user is a Club Member
      */
     public boolean isClubMember() {
-        return getCurrentStudentRoleType()
-                .map(type -> type == StudentRoleType.CLUB_MEMBER)
-                .orElse(false);
+        return hasStudentRoleType(StudentRoleType.CLUB_MEMBER);
     }
 
     /**

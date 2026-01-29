@@ -362,16 +362,16 @@ public class ClubServiceImpl implements ClubService {
 
         membership = membershipRepository.save(membership);
 
-        // Update the student's role type to CLUB_MEMBER if they are currently NORMAL
+        // Add CLUB_MEMBER role type to the student if they don't have it
         Student member = membership.getMember();
-        if (member.getStudentRoleType() == StudentRoleType.NORMAL) {
-            member.setStudentRoleType(StudentRoleType.CLUB_MEMBER);
+        if (!member.hasRoleType(StudentRoleType.CLUB_MEMBER)) {
+            member.addRoleType(StudentRoleType.CLUB_MEMBER);
             // Also set the student's club position if not set
             if (member.getClubPosition() == null) {
                 member.setClubPosition(ClubPositionsType.GENERAL_MEMBER);
             }
             studentRepository.save(member);
-            log.info("Updated student {} role type to CLUB_MEMBER with position GENERAL_MEMBER", member.getId());
+            log.info("Added CLUB_MEMBER role type to student {} with position GENERAL_MEMBER", member.getId());
         }
 
         log.info("Membership approved: {}", membershipId);
@@ -559,10 +559,10 @@ public class ClubServiceImpl implements ClubService {
      */
     private void validatePresidentEligibility(Student student) {
         // Check if student is a CLUB_MEMBER
-        if (student.getStudentRoleType() != StudentRoleType.CLUB_MEMBER) {
+        if (!student.hasRoleType(StudentRoleType.CLUB_MEMBER)) {
             throw new BadRequestException(
-                    "Student must be a CLUB_MEMBER to be assigned as president. Current role: "
-                    + student.getStudentRoleType()
+                    "Student must be a CLUB_MEMBER to be assigned as president. Current roles: "
+                    + student.getStudentRoleDisplayName()
             );
         }
 
