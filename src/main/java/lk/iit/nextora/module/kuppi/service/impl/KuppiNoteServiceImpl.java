@@ -333,7 +333,7 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
     }
 
     private void validateKuppiStudent(Student student) {
-        if (!StudentRoleType.SENIOR_KUPPI.equals(student.getStudentRoleType())) {
+        if (!student.hasRoleType(StudentRoleType.SENIOR_KUPPI)) {
             throw new UnauthorizedException("Only Kuppi Students can upload notes");
         }
     }

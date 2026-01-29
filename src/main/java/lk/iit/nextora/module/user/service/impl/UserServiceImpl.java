@@ -146,15 +146,16 @@ public class UserServiceImpl implements UserService {
             student.setGuardianPhone(StringUtils.trim(request.getGuardianPhone()));
         }
 
-        // Update role-specific fields based on current studentRoleType
-        if (student.getStudentRoleType() != null) {
-            switch (student.getStudentRoleType()) {
-                case CLUB_MEMBER -> updateClubMemberFields(student, request);
-                case SENIOR_KUPPI -> updateSeniorKuppiFields(student, request);
-                case BATCH_REP -> updateBatchRepFields(student, request);
-                default -> {
-                    // NORMAL student - no extra fields
-                }
+        // Update role-specific fields based on all studentRoleTypes
+        if (student.getStudentRoleTypes() != null) {
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.CLUB_MEMBER)) {
+                updateClubMemberFields(student, request);
+            }
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI)) {
+                updateSeniorKuppiFields(student, request);
+            }
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.BATCH_REP)) {
+                updateBatchRepFields(student, request);
             }
         }
     }

@@ -17,8 +17,9 @@ import java.util.Set;
 
 /**
  * Student registration request with role-specific fields.
+ * A student can have multiple role types simultaneously.
  *
- * - NORMAL: Only basic fields required
+ * - NORMAL: Basic student (always included)
  * - CLUB_MEMBER: Requires club-related fields
  * - SENIOR_KUPPI: Requires kuppi-related fields
  * - BATCH_REP: Requires batch representative fields
@@ -48,8 +49,15 @@ public class StudentRegisterRequest extends RegisterRequest {
     private FacultyType faculty;
 
     /**
-     * Student sub-role type (defaults to NORMAL if not provided)
+     * Multiple student sub-role types (defaults to NORMAL if not provided)
+     * A student can have multiple roles like CLUB_MEMBER and SENIOR_KUPPI simultaneously
      */
+    private Set<StudentRoleType> studentRoleTypes;
+
+    /**
+     * @deprecated Use studentRoleTypes instead. Kept for backward compatibility.
+     */
+    @Deprecated
     private StudentRoleType studentRoleType;
 
     @Past(message = "Date of birth must be in the past")
@@ -102,4 +110,17 @@ public class StudentRegisterRequest extends RegisterRequest {
 
     @Size(max = 500, message = "Responsibilities must not exceed 500 characters")
     private String batchRepResponsibilities;
+
+    /**
+     * Get effective role types - combines new field with deprecated field for backward compatibility
+     */
+    public Set<StudentRoleType> getEffectiveRoleTypes() {
+        if (studentRoleTypes != null && !studentRoleTypes.isEmpty()) {
+            return studentRoleTypes;
+        }
+        if (studentRoleType != null) {
+            return Set.of(studentRoleType);
+        }
+        return Set.of(StudentRoleType.NORMAL);
+    }
 }

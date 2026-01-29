@@ -266,9 +266,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new BadRequestException("Student must be at least 16 years old");
         }
 
-        StudentRoleType roleType = studentRequest.getStudentRoleType();
-        if (roleType != null && roleType != StudentRoleType.NORMAL) {
-            validateStudentRoleSpecificFields(studentRequest, roleType);
+        // Get effective role types (supports both new and deprecated fields)
+        java.util.Set<StudentRoleType> roleTypes = studentRequest.getEffectiveRoleTypes();
+
+        // Validate role-specific fields for each role type
+        for (StudentRoleType roleType : roleTypes) {
+            if (roleType != StudentRoleType.NORMAL) {
+                validateStudentRoleSpecificFields(studentRequest, roleType);
+            }
         }
 
         Student student = userMapper.toStudent(studentRequest);

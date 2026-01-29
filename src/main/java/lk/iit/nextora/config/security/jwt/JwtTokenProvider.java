@@ -56,11 +56,14 @@ public class JwtTokenProvider {
             claims.put("userType", baseUser.getUserType());
             claims.put("fullName", baseUser.getFullName());
 
-            // Add student sub-role if applicable
+            // Add student sub-roles if applicable
             if (baseUser instanceof Student student) {
-                StudentRoleType subRole = student.getStudentRoleType();
-                if (subRole != null) {
-                    claims.put("studentRoleType", subRole.name());
+                java.util.Set<StudentRoleType> roleTypes = student.getStudentRoleTypes();
+                if (roleTypes != null && !roleTypes.isEmpty()) {
+                    claims.put("studentRoleTypes", roleTypes.stream()
+                            .map(StudentRoleType::name)
+                            .toList());
+                    claims.put("primaryStudentRoleType", student.getPrimaryRoleType().name());
                 }
             }
         }

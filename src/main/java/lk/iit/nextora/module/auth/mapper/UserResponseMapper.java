@@ -41,7 +41,8 @@ public interface UserResponseMapper {
         data.put("batch", student.getBatch());
         data.put("program", student.getProgram());
         data.put("faculty", student.getFaculty());
-        data.put("studentRoleType", student.getStudentRoleType());
+        data.put("studentRoleTypes", student.getStudentRoleTypes());
+        data.put("primaryRoleType", student.getPrimaryRoleType());
         data.put("studentRoleDisplayName", student.getStudentRoleDisplayName());
         data.put("enrollmentDate", student.getEnrollmentDate());
         data.put("dateOfBirth", student.getDateOfBirth());
@@ -49,37 +50,37 @@ public interface UserResponseMapper {
         data.put("guardianName", student.getGuardianName());
         data.put("guardianPhone", student.getGuardianPhone());
 
-        // Add role-specific data based on studentRoleType
-        if (student.getStudentRoleType() != null) {
-            switch (student.getStudentRoleType()) {
-                case CLUB_MEMBER -> {
-                    Map<String, Object> clubData = new HashMap<>();
-                    clubData.put("clubName", student.getClubName());
-                    clubData.put("clubPosition", student.getClubPosition());
-                    clubData.put("clubJoinDate", student.getClubJoinDate());
-                    clubData.put("clubMembershipId", student.getClubMembershipId());
-                    data.put("clubMemberData", clubData);
-                }
-                case SENIOR_KUPPI -> {
-                    Map<String, Object> kuppiData = new HashMap<>();
-                    kuppiData.put("kuppiSubjects", student.getKuppiSubjects());
-                    kuppiData.put("kuppiExperienceLevel", student.getKuppiExperienceLevel());
-                    kuppiData.put("kuppiSessionsCompleted", student.getKuppiSessionsCompleted());
-                    kuppiData.put("kuppiRating", student.getKuppiRating());
-                    kuppiData.put("kuppiAvailability", student.getKuppiAvailability());
-                    data.put("seniorKuppiData", kuppiData);
-                }
-                case BATCH_REP -> {
-                    Map<String, Object> batchRepData = new HashMap<>();
-                    batchRepData.put("batchRepYear", student.getBatchRepYear());
-                    batchRepData.put("batchRepSemester", student.getBatchRepSemester());
-                    batchRepData.put("batchRepElectedDate", student.getBatchRepElectedDate());
-                    batchRepData.put("batchRepResponsibilities", student.getBatchRepResponsibilities());
-                    data.put("batchRepData", batchRepData);
-                }
-                default -> {
-                    // NORMAL student - no additional data
-                }
+        // Add role-specific data based on all studentRoleTypes
+        if (student.getStudentRoleTypes() != null) {
+            // CLUB_MEMBER data
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.CLUB_MEMBER)) {
+                Map<String, Object> clubData = new HashMap<>();
+                clubData.put("clubName", student.getClubName());
+                clubData.put("clubPosition", student.getClubPosition());
+                clubData.put("clubJoinDate", student.getClubJoinDate());
+                clubData.put("clubMembershipId", student.getClubMembershipId());
+                data.put("clubMemberData", clubData);
+            }
+
+            // SENIOR_KUPPI data
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI)) {
+                Map<String, Object> kuppiData = new HashMap<>();
+                kuppiData.put("kuppiSubjects", student.getKuppiSubjects());
+                kuppiData.put("kuppiExperienceLevel", student.getKuppiExperienceLevel());
+                kuppiData.put("kuppiSessionsCompleted", student.getKuppiSessionsCompleted());
+                kuppiData.put("kuppiRating", student.getKuppiRating());
+                kuppiData.put("kuppiAvailability", student.getKuppiAvailability());
+                data.put("seniorKuppiData", kuppiData);
+            }
+
+            // BATCH_REP data
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.BATCH_REP)) {
+                Map<String, Object> batchRepData = new HashMap<>();
+                batchRepData.put("batchRepYear", student.getBatchRepYear());
+                batchRepData.put("batchRepSemester", student.getBatchRepSemester());
+                batchRepData.put("batchRepElectedDate", student.getBatchRepElectedDate());
+                batchRepData.put("batchRepResponsibilities", student.getBatchRepResponsibilities());
+                data.put("batchRepData", batchRepData);
             }
         }
 
