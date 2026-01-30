@@ -151,8 +151,9 @@ public class UserServiceImpl implements UserService {
             if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.CLUB_MEMBER)) {
                 updateClubMemberFields(student, request);
             }
-            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI)) {
-                updateSeniorKuppiFields(student, request);
+            // Handle both KUPPI_STUDENT (new) and SENIOR_KUPPI (deprecated) for backward compatibility
+            if (student.hasKuppiCapability()) {
+                updateKuppiStudentFields(student, request);
             }
             if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.BATCH_REP)) {
                 updateBatchRepFields(student, request);
@@ -175,7 +176,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void updateSeniorKuppiFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
+    private void updateKuppiStudentFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
         if (request.getKuppiSubjects() != null && !request.getKuppiSubjects().isEmpty()) {
             student.setKuppiSubjects(request.getKuppiSubjects());
         }
@@ -233,37 +234,64 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Transactional
     @Override
     public void changePassword(ChangePasswordRequest request) {
-        BaseUser currentUser = getCurrentAuthenticatedUser();
-        log.info("Password change requested for user: {}", StringUtils.maskEmail(currentUser.getEmail()));
 
-        // Validate using ValidationUtils
+        BaseUser currentUser = getCurrentAuthenticatedUser();
+
+        log.info(
+                "Password change requested for user: {}",
+                StringUtils.maskEmail(currentUser.getEmail())
+        );
+
+        // 🔐 Match new & confirm password
         ValidationUtils.requireEquals(
                 request.getNewPassword(),
                 request.getConfirmPassword(),
                 "New passwords do not match"
         );
 
+        // 🔐 Validate current password
         ValidationUtils.requireTrue(
-                passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword()),
+                passwordEncoder.matches(
+                        request.getCurrentPassword(),
+                        currentUser.getPassword()
+                ),
                 "Current password is incorrect"
         );
 
+        // 🔐 Prevent reuse
         ValidationUtils.requireFalse(
-                passwordEncoder.matches(request.getNewPassword(), currentUser.getPassword()),
+                passwordEncoder.matches(
+                        request.getNewPassword(),
+                        currentUser.getPassword()
+                ),
                 "New password must be different from current password"
         );
 
-        // Update password
-        currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        // 🔐 Password strength validation using ValidationUtils
+        ValidationUtils.requireValidPassword(request.getNewPassword(), "New password");
+
+        // ✅ Activate user after first login password change
+        if (UserStatus.PASSWORD_CHANGE_REQUIRED.equals(currentUser.getStatus())) {
+            currentUser.setStatus(UserStatus.ACTIVE);
+        }
+
+        currentUser.setPassword(
+                passwordEncoder.encode(request.getNewPassword())
+        );
+
         entityManager.merge(currentUser);
         entityManager.flush();
 
-        // Evict all user caches (security-sensitive change)
+        // 🔥 Security cleanup
         cacheService.evictAllUserCaches(currentUser.getId());
 
-        log.info("Password changed successfully for user: {}", StringUtils.maskEmail(currentUser.getEmail()));
+        log.info(
+                "Password changed successfully for user: {}",
+                StringUtils.maskEmail(currentUser.getEmail())
+        );
     }
 
     @Override
