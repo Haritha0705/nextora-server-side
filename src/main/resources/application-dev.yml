@@ -61,14 +61,8 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-# Firebase Configuration (disabled by default in dev)
-# To enable: set FIREBASE_ENABLED=true and provide service account path
+# Firebase Configuration for Development
+# Set FIREBASE_ENABLED=true and provide serviceAccountKey.json to enable push notifications
 firebase:
-  enabled: ${FIREBASE_ENABLED:false}
-  service-account:
-    path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
-  token-cleanup:
-    enabled: true
-    days-old: 30
-    cron: "0 0 3 * * *"
-
+  enabled: ${FIREBASE_ENABLED:true}
+  config-path: ${FIREBASE_CONFIG_PATH:classpath:firebase/serviceAccountKey.json}

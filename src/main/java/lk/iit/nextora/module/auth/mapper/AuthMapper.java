@@ -1,7 +1,10 @@
 package lk.iit.nextora.module.auth.mapper;
 
 import lk.iit.nextora.common.mapper.MapperConfiguration;
+import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
+import lk.iit.nextora.module.auth.dto.response.ForgotPasswordResponse;
+import lk.iit.nextora.module.auth.dto.response.VerifyResetTokenResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -105,6 +108,54 @@ public interface AuthMapper {
         response.setMessage(message);
         response.setPasswordChangeRequired(true);
         return response;
+    }
+
+    // ==================== FORGOT PASSWORD MAPPERS ====================
+
+    /**
+     * Build ForgotPasswordResponse for successful password reset initiation
+     *
+     * @param user          the user entity
+     * @param expiryMinutes token expiry time in minutes
+     * @return ForgotPasswordResponse DTO
+     */
+    default ForgotPasswordResponse toForgotPasswordResponse(BaseUser user, int expiryMinutes) {
+        return ForgotPasswordResponse.builder()
+                .message("Password reset link sent to your email. Please check your inbox.")
+                .maskedEmail(StringUtils.maskEmail(user.getEmail()))
+                .expiryMinutes(expiryMinutes)
+                .build();
+    }
+
+    /**
+     * Build VerifyResetTokenResponse for valid token
+     *
+     * @param email            user's email
+     * @param remainingMinutes remaining token validity in minutes
+     * @return VerifyResetTokenResponse DTO
+     */
+    default VerifyResetTokenResponse toValidTokenResponse(String email, Long remainingMinutes) {
+        return VerifyResetTokenResponse.builder()
+                .valid(true)
+                .message("Token is valid. You can now reset your password.")
+                .maskedEmail(StringUtils.maskEmail(email))
+                .remainingMinutes(remainingMinutes)
+                .build();
+    }
+
+    /**
+     * Build VerifyResetTokenResponse for invalid token
+     *
+     * @param message error message
+     * @return VerifyResetTokenResponse DTO
+     */
+    default VerifyResetTokenResponse toInvalidTokenResponse(String message) {
+        return VerifyResetTokenResponse.builder()
+                .valid(false)
+                .message(message)
+                .maskedEmail(null)
+                .remainingMinutes(null)
+                .build();
     }
 }
 

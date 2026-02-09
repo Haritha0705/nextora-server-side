@@ -5,11 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
-/**
- * Response DTO for token registration.
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,25 +14,26 @@ import java.time.LocalDateTime;
 public class TokenRegistrationResponse {
 
     private Long tokenId;
-    private boolean isNew;
-    private LocalDateTime registeredAt;
     private String message;
+    private boolean isNew;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 
-    public static TokenRegistrationResponse created(Long tokenId, LocalDateTime registeredAt) {
+    public static TokenRegistrationResponse created(Long tokenId, ZonedDateTime createdAt) {
         return TokenRegistrationResponse.builder()
                 .tokenId(tokenId)
-                .isNew(true)
-                .registeredAt(registeredAt)
                 .message("FCM token registered successfully")
+                .isNew(true)
+                .createdAt(createdAt)
                 .build();
     }
 
-    public static TokenRegistrationResponse updated(Long tokenId, LocalDateTime updatedAt) {
+    public static TokenRegistrationResponse updated(Long tokenId, ZonedDateTime updatedAt) {
         return TokenRegistrationResponse.builder()
                 .tokenId(tokenId)
-                .isNew(false)
-                .registeredAt(updatedAt)
                 .message("FCM token updated successfully")
+                .isNew(false)
+                .updatedAt(updatedAt)
                 .build();
     }
 }

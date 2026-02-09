@@ -7,6 +7,7 @@ import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
 import lk.iit.nextora.config.security.SecurityService;
+import lk.iit.nextora.infrastructure.notification.service.KuppiNotificationService;
 import lk.iit.nextora.module.auth.entity.Student;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
 import lk.iit.nextora.module.kuppi.dto.request.CreateKuppiSessionRequest;
@@ -40,6 +41,7 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
     private final StudentRepository studentRepository;
     private final SecurityService securityService;
     private final KuppiMapper kuppiMapper;
+    private final KuppiNotificationService kuppiNotificationService;
 
     private static final List<KuppiSessionStatus> PUBLIC_STATUSES = List.of(
             KuppiSessionStatus.SCHEDULED,
@@ -124,6 +126,16 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
         session = sessionRepository.save(session);
         log.info("Kuppi session created by student {}: {}", currentUserId, session.getId());
 
+        // Send push notification to all students (async - non-blocking)
+        String hostFullName = host.getFirstName() + " " + host.getLastName();
+        kuppiNotificationService.notifyNewKuppiSession(
+                session.getId(),
+                session.getTitle(),
+                session.getSubject(),
+                hostFullName,
+                session.getScheduledStartTime()
+        );
+
         return kuppiMapper.toResponse(session);
     }
 
@@ -171,6 +183,14 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
         sessionRepository.save(session);
 
         log.info("Kuppi session {} cancelled by student {}", sessionId, currentUserId);
+
+        // Send push notification to all students (async - non-blocking)
+        kuppiNotificationService.notifyKuppiSessionCancelled(
+                session.getId(),
+                session.getTitle(),
+                session.getSubject(),
+                reason
+        );
     }
 
     @Override
@@ -196,6 +216,15 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
         session = sessionRepository.save(session);
 
         log.info("Kuppi session {} rescheduled by student {}", sessionId, currentUserId);
+
+        // Send push notification to all students (async - non-blocking)
+        kuppiNotificationService.notifyKuppiSessionRescheduled(
+                session.getId(),
+                session.getTitle(),
+                session.getSubject(),
+                newStartTime
+        );
+
         return kuppiMapper.toResponse(session);
     }
 

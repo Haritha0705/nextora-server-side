@@ -1,29 +1,34 @@
 package lk.iit.nextora.infrastructure.notification.push.entity;
 
-import jakarta.persistence.*;
 import lk.iit.nextora.common.enums.UserRole;
+import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
- * FCM Token Entity - Stores Firebase Cloud Messaging tokens for push notifications.
+ * FCM Token Entity
  *
  * Design Decisions:
- * - Each user can have multiple tokens (multiple devices)
- * - Token is unique (not the user) to support multi-device scenarios
- * - Soft-delete not used here; invalid tokens are hard-deleted for cleanup
- * - Role stored with token enables role-based notification targeting
- * - lastUsedAt tracks token activity for cleanup of stale tokens
- * - deviceInfo helps identify which device a token belongs to (debugging)
+ * 1. Token is unique per user to prevent duplicates
+ * 2. Role stored at registration time (may differ from current role)
+ * 3. Active flag for soft-delete (enables analytics)
+ * 4. lastUsedAt tracks token freshness
+ *
+ * Indexing Strategy:
+ * - Composite unique constraint on (token, userId)
+ * - Index on role for role-based notifications
+ * - Index on active for filtering valid tokens
  */
 @Entity
-@Table(name = "fcm_tokens", indexes = {
-        @Index(name = "idx_fcm_token_user_id", columnList = "user_id"),
-        @Index(name = "idx_fcm_token_role", columnList = "role"),
-        @Index(name = "idx_fcm_token_active", columnList = "is_active"),
-        @Index(name = "idx_fcm_token_value", columnList = "token", unique = true)
-})
+@Table(name = "fcm_tokens",
+    indexes = {
+        @Index(name = "idx_fcm_tokens_user_id", columnList = "user_id"),
+        @Index(name = "idx_fcm_tokens_role", columnList = "role"),
+        @Index(name = "idx_fcm_tokens_active", columnList = "is_active")
+    })
 @Getter
 @Setter
 @Builder
@@ -37,69 +42,79 @@ public class FcmToken {
     private Long id;
 
     /**
-     * The actual FCM registration token from the client.
-     * Unique constraint ensures no duplicate tokens.
+     * Firebase Cloud Messaging token.
+     * Max 500 chars to accommodate FCM token length.
      */
-    @Column(name = "token", nullable = false, unique = true, length = 512)
+    @Column(nullable = false, length = 500, unique = true)
     private String token;
 
     /**
-     * User ID this token belongs to.
-     * Not a foreign key to avoid tight coupling with user table.
+     * Reference to the user who owns this token.
+     * Stored as Long to allow flexible user table design.
      */
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
     /**
-     * User's role at the time of token registration.
+     * User role at the time of token registration.
      * Used for role-based notification targeting.
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 30)
+    @Column(nullable = false, length = 50)
     private UserRole role;
 
     /**
-     * Whether this token is active and should receive notifications.
-     * Set to false when token becomes invalid or user disables notifications.
+     * Device type for analytics and targeting.
      */
-    @Column(name = "is_active", nullable = false)
-    @Builder.Default
-    private Boolean isActive = true;
+    @Column(name = "device_type", length = 50)
+    private String deviceType;
 
     /**
-     * Timestamp of when this token was last used to send a notification.
-     * Helps identify stale tokens for cleanup.
-     */
-    @Column(name = "last_used_at")
-    private LocalDateTime lastUsedAt;
-
-    /**
-     * Optional device information for debugging and user device management.
-     * Example: "Chrome on Windows", "Safari on iPhone"
+     * Device info for additional context.
      */
     @Column(name = "device_info", length = 255)
     private String deviceInfo;
 
     /**
-     * Timestamp when this token was registered.
+     * Active flag for soft-delete functionality.
+     * Inactive tokens are not used for sending notifications.
      */
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
 
     /**
-     * Timestamp when this token was last updated.
+     * Timestamp when the token was first registered.
      */
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private ZonedDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
+    /**
+     * Timestamp when the token was last updated.
+     */
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private ZonedDateTime updatedAt;
+
+    /**
+     * Timestamp when a notification was last sent to this token.
+     * Used for token freshness tracking and cleanup.
+     */
+    @Column(name = "last_used_at")
+    private ZonedDateTime lastUsedAt;
+
+    /**
+     * Deactivates the token (soft delete).
+     */
+    public void deactivate() {
+        this.isActive = false;
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    /**
+     * Updates the last used timestamp.
+     */
+    public void markAsUsed() {
+        this.lastUsedAt = ZonedDateTime.now();
     }
 }

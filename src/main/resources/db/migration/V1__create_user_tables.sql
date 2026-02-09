@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     role VARCHAR(30) NOT NULL,
-    status VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING_VERIFICATION',
     phone_number VARCHAR(20),
     failed_login_attempts INTEGER DEFAULT 0,
     last_failed_login_at TIMESTAMP,

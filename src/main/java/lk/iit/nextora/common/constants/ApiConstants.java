@@ -29,6 +29,11 @@ public final class ApiConstants {
     public static final String AUTH_VERIFY_EMAIL = "/verify-email";
     public static final String AUTH_RESEND_VERIFICATION = "/resend-verification";
 
+    // Forgot Password endpoints
+    public static final String AUTH_FORGOT_PASSWORD = "/forgot-password";
+    public static final String AUTH_VERIFY_RESET_TOKEN = "/verify-reset-token";
+    public static final String AUTH_RESET_PASSWORD = "/reset-password";
+
     // Admin User Management endpoints
     public static final String USER_ADMIN = ADMIN + "/user";
     public static final String ADMIN_CREATE_USER = "";

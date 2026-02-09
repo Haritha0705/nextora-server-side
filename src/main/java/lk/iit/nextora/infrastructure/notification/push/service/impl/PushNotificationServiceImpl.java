@@ -9,7 +9,6 @@ import lk.iit.nextora.infrastructure.notification.push.dto.response.TokenRegistr
 import lk.iit.nextora.infrastructure.notification.push.entity.FcmToken;
 import lk.iit.nextora.infrastructure.notification.push.repository.FcmTokenRepository;
 import lk.iit.nextora.infrastructure.notification.push.service.PushNotificationService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -17,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -36,16 +36,35 @@ import java.util.stream.Collectors;
  * - Other errors: Log and continue, don't remove token
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class PushNotificationServiceImpl implements PushNotificationService {
 
     private final FcmTokenRepository fcmTokenRepository;
-    private final FirebaseMessaging firebaseMessaging;
+    private final Optional<FirebaseMessaging> firebaseMessaging;
 
     // Maximum tokens per batch (FCM limit is 500)
     private static final int BATCH_SIZE = 500;
+
+    public PushNotificationServiceImpl(
+            FcmTokenRepository fcmTokenRepository,
+            Optional<FirebaseMessaging> optionalFirebaseMessaging) {
+        this.fcmTokenRepository = fcmTokenRepository;
+        this.firebaseMessaging = optionalFirebaseMessaging;
+
+        if (firebaseMessaging.isEmpty()) {
+            log.warn("PushNotificationService initialized without Firebase - push notifications will be disabled");
+        } else {
+            log.info("PushNotificationService initialized with Firebase Cloud Messaging");
+        }
+    }
+
+    /**
+     * Check if Firebase is available for sending notifications.
+     */
+    private boolean isFirebaseAvailable() {
+        return firebaseMessaging.isPresent();
+    }
 
     // ==================== TOKEN MANAGEMENT ====================
 
@@ -203,7 +222,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     @Override
     public boolean isEnabled() {
-        return firebaseMessaging != null;
+        return isFirebaseAvailable();
     }
 
     @Override
@@ -259,7 +278,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
             try {
                 MulticastMessage message = buildMulticastMessage(batch, title, body, imageUrl, data, clickAction, ttlSeconds);
-                BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
+                BatchResponse response = firebaseMessaging.get().sendEachForMulticast(message);
 
                 successCount += response.getSuccessCount();
                 failureCount += response.getFailureCount();
@@ -361,7 +380,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
                 .setNotification(WebpushNotification.builder()
                         .setTitle(title)
                         .setBody(body)
-                        .setIcon("/icons/notification-icon.png")
+                        .setIcon("/icons/icon-192x192.png")
                         .build())
                 .setFcmOptions(WebpushFcmOptions.builder()
                         .setLink(clickAction != null ? clickAction : "/")
