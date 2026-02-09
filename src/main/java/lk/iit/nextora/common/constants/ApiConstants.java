@@ -19,6 +19,7 @@ public final class ApiConstants {
     public static final String USER = API_V1 + "/user";
     public static final String CLUBS = API_V1 + "/club";
     public static final String ELECTIONS = API_V1 + "/club/election";
+    public static final String PUSH = API_V1 + "/push";
 
     // Authentication endpoints
 
@@ -27,6 +28,11 @@ public final class ApiConstants {
     public static final String AUTH_LOGOUT = "/logout";
     public static final String AUTH_VERIFY_EMAIL = "/verify-email";
     public static final String AUTH_RESEND_VERIFICATION = "/resend-verification";
+
+    // Forgot Password endpoints
+    public static final String AUTH_FORGOT_PASSWORD = "/forgot-password";
+    public static final String AUTH_VERIFY_RESET_TOKEN = "/verify-reset-token";
+    public static final String AUTH_RESET_PASSWORD = "/reset-password";
 
     // Admin User Management endpoints
     public static final String USER_ADMIN = ADMIN + "/user";

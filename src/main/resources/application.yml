@@ -138,3 +138,15 @@ management:
     web:
       exposure:
         include: health
+
+# Firebase Configuration
+firebase:
+  enabled: ${FIREBASE_ENABLED:true}
+  config-path: ${FIREBASE_CONFIG_PATH:classpath:firebase/serviceAccountKey.json}
+  project-id: ${FIREBASE_PROJECT_ID:}
+
+# Async Configuration for Push Notifications
+async:
+  core-pool-size: 5
+  max-pool-size: 20
+  queue-capacity: 100

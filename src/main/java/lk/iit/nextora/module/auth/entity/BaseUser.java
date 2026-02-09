@@ -46,7 +46,7 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     @Column(nullable = false, length = 50)
     private UserStatus status = UserStatus.ACTIVE;
 
-    @Column(length = 15)
+    @Column(length = 20)
     private String phoneNumber;
 
     /**

@@ -78,10 +78,10 @@ public class EmailServiceImpl implements EmailService {
     @Override
     @Async
     public void sendPasswordResetEmail(BaseUser user, String token) {
-        String resetLink = baseUrl + "/api/v1/auth/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
 
         String subject = "Reset Your Password - Nextora";
-        String htmlContent = buildPasswordResetEmailHtml(user.getFirstName(), resetLink);
+        String htmlContent = buildPasswordResetEmailHtml(user.getFirstName(), resetLink, token);
 
         sendHtmlEmail(user.getEmail(), subject, htmlContent);
         log.info("Password reset email sent to: {}", maskEmail(user.getEmail()));
@@ -132,10 +132,11 @@ public class EmailServiceImpl implements EmailService {
                 .replace("{{verificationLink}}", verificationLink);
     }
 
-    private String buildPasswordResetEmailHtml(String firstName, String resetLink) {
+    private String buildPasswordResetEmailHtml(String firstName, String resetLink, String token) {
         return passwordResetEmailTemplate
                 .replace("{{firstName}}", firstName)
-                .replace("{{resetLink}}", resetLink);
+                .replace("{{resetLink}}", resetLink)
+                .replace("{{token}}", token);
     }
 
     private String buildAccountActivatedEmailHtml(String firstName) {
