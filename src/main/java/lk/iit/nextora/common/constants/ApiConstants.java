@@ -180,22 +180,44 @@ public final class ApiConstants {
     public static final String ELECTION_ADMIN_PROCESS_STATUS_PATH = "/process-status-updates";
     public static final String ELECTION_ADMIN_RESET_VOTES_PATH = "/{electionId}/reset-votes";
 
+    // ==================== Meeting Endpoints (Student-Lecturer) ====================
 
+    // Base meeting paths
+    public static final String MEETINGS = API_V1 + "/meetings";
+    public static final String MEETING_ADMIN = ADMIN + "/meetings";
 
+    // Common endpoints
+    public static final String MEETING_BY_ID = "/{meetingId}";
+    public static final String MEETING_START = "/{meetingId}/start";
+    public static final String MEETING_COMPLETE = "/{meetingId}/complete";
 
+    // Student endpoints (requesting meetings)
+    public static final String MEETING_MY_REQUESTS = "/my/requests";
+    public static final String MEETING_MY_UPCOMING = "/my/upcoming";
+    public static final String MEETING_MY_SEARCH = "/my/search";
+    public static final String MEETING_CANCEL_BY_STUDENT = "/{meetingId}/cancel";
 
+    // Lecturer endpoints (managing meeting requests)
+    public static final String MEETING_LECTURER = "/lecturer";
+    public static final String MEETING_PENDING = "/lecturer/pending";
+    public static final String MEETING_PENDING_COUNT = "/lecturer/pending/count";
+    public static final String MEETING_LECTURER_ALL = "/lecturer/all";
+    public static final String MEETING_LECTURER_UPCOMING = "/lecturer/upcoming";
+    public static final String MEETING_LECTURER_CALENDAR = "/lecturer/calendar";
+    public static final String MEETING_LECTURER_SEARCH = "/lecturer/search";
+    public static final String MEETING_LECTURER_STATISTICS = "/lecturer/statistics";
+    public static final String MEETING_ACCEPT = "/{meetingId}/accept";
+    public static final String MEETING_REJECT = "/{meetingId}/reject";
+    public static final String MEETING_RESCHEDULE = "/{meetingId}/reschedule";
+    public static final String MEETING_CANCEL_BY_LECTURER = "/{meetingId}/lecturer-cancel";
+    public static final String MEETING_ADD_NOTES = "/{meetingId}/notes";
 
-
-
-
-
-
-
-
-
-
-
-
+    // Admin meeting endpoints
+    public static final String MEETING_ADMIN_BY_ID = "/{meetingId}";
+    public static final String MEETING_ADMIN_CANCEL = "/{meetingId}/force-cancel";
+    public static final String MEETING_ADMIN_PERMANENT = "/{meetingId}/permanent";
+    public static final String MEETING_ADMIN_STATISTICS = "/statistics";
+    public static final String MEETING_ADMIN_LECTURER_STATISTICS = "/statistics/lecturer/{lecturerId}";
 
 
 //    public static final String VOTING_ADMIN_CLUBS = ELECTION_ADMIN + "/clubs";
