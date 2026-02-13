@@ -2,6 +2,7 @@ package lk.iit.nextora.module.user.service.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.StudentRoleType;
 import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.enums.UserStatus;
@@ -41,6 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -345,17 +349,39 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheNames.USERS_LIST_CACHE, key = "'all'", unless = "#result.isEmpty()")
-    public List<UserSummaryResponse> getAllUsers() {
-        log.debug("Fetching all users (cache miss)");
+    @Cacheable(value = CacheNames.USERS_LIST_CACHE, key = "'page_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.empty")
+    public PagedResponse<UserSummaryResponse> getAllUsers(Pageable pageable) {
+        log.debug("Fetching all users with pagination - page: {}, size: {} (cache miss)",
+                pageable.getPageNumber(), pageable.getPageSize());
 
+        // Get total count
+        Long totalElements = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u", Long.class)
+                .getSingleResult();
+
+        // Get paginated results
         List<BaseUser> users = entityManager
                 .createQuery("SELECT u FROM BaseUser u ORDER BY u.createdAt DESC", BaseUser.class)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        return users.stream()
+        List<UserSummaryResponse> content = users.stream()
                 .map(userProfileMapper::toSummaryResponse)
                 .collect(Collectors.toList());
+
+        Page<UserSummaryResponse> page = new PageImpl<>(content, pageable, totalElements);
+
+        return PagedResponse.<UserSummaryResponse>builder()
+                .content(content)
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
     }
 
     @Override
@@ -627,7 +653,7 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setIsActive(false);
-        user.setStatus(UserStatus.Deactivate);
+        user.setStatus(UserStatus.DEACTIVATE);
         entityManager.merge(user);
         entityManager.flush();
 

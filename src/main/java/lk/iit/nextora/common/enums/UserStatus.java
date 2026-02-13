@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum UserStatus {
     ACTIVE("Active"),
-    Deactivate("Deactivate"),
+    DEACTIVATE("Deactivate"),
     SUSPENDED("Suspended"),
     DELETED("Deleted"),
     PENDING_VERIFICATION("Pending_Verification"),
