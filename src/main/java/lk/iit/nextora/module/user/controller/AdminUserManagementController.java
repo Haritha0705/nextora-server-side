@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
+import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.module.auth.dto.request.AdminCreateUserRequest;
 import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
@@ -15,13 +16,17 @@ import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.time.LocalDate;
 
 /**
  * REST Controller for admin user management
@@ -39,7 +44,7 @@ public class AdminUserManagementController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('USER_CREATE')")
+    @PreAuthorize("hasAuthority('USER:CREATE')")
     @Operation(
             summary = "Create a new user",
             description = "Admin/Super Admin creates a new user (Student, Academic Staff, or Non-Academic Staff). " +
@@ -56,10 +61,17 @@ public class AdminUserManagementController {
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
     @Operation(
             summary = "Get all users",
-            description = "Retrieve all users (Admin only)"
+            description = "Retrieve all users with pagination (Admin only)"
     )
-    public ApiResponse<List<UserSummaryResponse>> getAllUsers() {
-        List<UserSummaryResponse> users = userService.getAllUsers();
+    public ApiResponse<PagedResponse<UserSummaryResponse>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.getAllUsers(pageable);
         return ApiResponse.success("Users retrieved successfully", users);
     }
 
@@ -88,6 +100,9 @@ public class AdminUserManagementController {
             @Parameter(description = "Last name") @RequestParam(value = "lastName", required = false) String lastName,
             @Parameter(description = "Phone number") @RequestParam(value = "phone", required = false) String phone,
             @Parameter(description = "Address") @RequestParam(value = "address", required = false) String address,
+            @Parameter(description = "Guardian name") @RequestParam(value = "guardianName", required = false) String guardianName,
+            @Parameter(description = "Guardian phone number") @RequestParam(value = "guardianPhone", required = false) String guardianPhone,
+            @Parameter(description = "Date of birth (format: yyyy-MM-dd)") @RequestParam(value = "dateOfBirth", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
             @Parameter(description = "Profile picture file (JPEG, PNG, GIF, WebP). Max 5MB") @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
             @Parameter(description = "Set to true to delete existing profile picture") @RequestParam(value = "deleteProfilePicture", required = false, defaultValue = "false") Boolean deleteProfilePicture) {
 
@@ -96,6 +111,9 @@ public class AdminUserManagementController {
                 .lastName(lastName)
                 .phone(phone)
                 .address(address)
+                .guardianName(guardianName)
+                .guardianPhone(guardianPhone)
+                .dateOfBirth(dateOfBirth)
                 .build();
 
         UserProfileResponse profile = userService.updateUserById(id, request, profilePicture, deleteProfilePicture);

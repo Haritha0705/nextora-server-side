@@ -12,11 +12,14 @@ import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
 
 /**
  * REST Controller for user profile management
@@ -56,6 +59,9 @@ public class UserController {
             @Parameter(description = "Last name") @RequestParam(value = "lastName", required = false) String lastName,
             @Parameter(description = "Phone number") @RequestParam(value = "phone", required = false) String phone,
             @Parameter(description = "Address") @RequestParam(value = "address", required = false) String address,
+            @Parameter(description = "Guardian name") @RequestParam(value = "guardianName", required = false) String guardianName,
+            @Parameter(description = "Guardian phone number") @RequestParam(value = "guardianPhone", required = false) String guardianPhone,
+            @Parameter(description = "Date of birth (format: yyyy-MM-dd)") @RequestParam(value = "dateOfBirth", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
             @Parameter(description = "Profile picture file (JPEG, PNG, GIF, WebP). Max 5MB") @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
             @Parameter(description = "Set to true to delete existing profile picture") @RequestParam(value = "deleteProfilePicture", required = false, defaultValue = "false") Boolean deleteProfilePicture) {
 
@@ -64,6 +70,9 @@ public class UserController {
                 .lastName(lastName)
                 .phone(phone)
                 .address(address)
+                .guardianName(guardianName)
+                .guardianPhone(guardianPhone)
+                .dateOfBirth(dateOfBirth)
                 .build();
 
         UserProfileResponse profile = userService.updateCurrentUserProfile(request, profilePicture, deleteProfilePicture);
