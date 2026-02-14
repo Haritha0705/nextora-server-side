@@ -8,25 +8,25 @@ import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
+import lk.iit.nextora.common.enums.UserRole;
+import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.module.auth.dto.request.AdminCreateUserRequest;
 import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
+import lk.iit.nextora.module.user.dto.response.UserStatsSummaryResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
+import java.util.List;
 
 /**
  * REST Controller for admin user management
@@ -56,6 +56,19 @@ public class AdminUserManagementController {
         return ApiResponse.success("User created successfully", response);
     }
 
+    @GetMapping(ApiConstants.ADMIN_USER_STATS)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
+    @Operation(
+            summary = "Get user statistics summary",
+            description = "Retrieve user statistics including total users, counts by status (Active, Deactivated, Suspended, Deleted, Password Change Required) " +
+                    "and counts by role (Students, Admins, Super Admins, Academic Staff, Non-Academic Staff). Admin/Super Admin only."
+    )
+    public ApiResponse<UserStatsSummaryResponse> getUserStatsSummary() {
+        UserStatsSummaryResponse stats = userService.getUserStatsSummary();
+        return ApiResponse.success("User statistics retrieved successfully", stats);
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
@@ -75,6 +88,52 @@ public class AdminUserManagementController {
         return ApiResponse.success("Users retrieved successfully", users);
     }
 
+    @GetMapping(ApiConstants.ADMIN_USER_SEARCH)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
+    @Operation(
+            summary = "Search users",
+            description = "Search users by email, first name, last name, or full name (Admin/Super Admin only)"
+    )
+    public ApiResponse<PagedResponse<UserSummaryResponse>> searchUsers(
+            @Parameter(description = "Search keyword (email, first name, last name, or full name)")
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.searchUsers(keyword, pageable);
+        return ApiResponse.success("Users search completed successfully", users);
+    }
+
+    @GetMapping(ApiConstants.ADMIN_USER_FILTER)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
+    @Operation(
+            summary = "Filter users",
+            description = "Filter users by role and/or status (Admin/Super Admin only). " +
+                    "Available roles: ROLE_STUDENT, ROLE_ADMIN, ROLE_SUPER_ADMIN, ROLE_ACADEMIC_STAFF, ROLE_NON_ACADEMIC_STAFF. " +
+                    "Available statuses: ACTIVE, DEACTIVATED, SUSPENDED, DELETED, PASSWORD_CHANGE_REQUIRED"
+    )
+    public ApiResponse<PagedResponse<UserSummaryResponse>> filterUsers(
+            @Parameter(description = "Filter by roles (can specify multiple)")
+            @RequestParam(required = false) List<UserRole> roles,
+            @Parameter(description = "Filter by statuses (can specify multiple)")
+            @RequestParam(required = false) List<UserStatus> statuses,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.filterUsers(roles, statuses, pageable);
+        return ApiResponse.success("Users filtered successfully", users);
+    }
+
     @GetMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
@@ -87,36 +146,19 @@ public class AdminUserManagementController {
         return ApiResponse.success("User retrieved successfully", profile);
     }
 
-    @PutMapping(value = ApiConstants.USER_BY_ID, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_UPDATE')")
     @Operation(
-            summary = "Update user by ID with optional profile picture",
-            description = "Update a specific user by ID (Admin only). Optionally upload a new profile picture or set deleteProfilePicture=true to remove existing picture."
+            summary = "Update user by ID",
+            description = "Update a specific user's details by ID (Admin/Super Admin only). " +
+                    "Only user profile information can be updated. Profile picture must be updated by the user themselves."
     )
     public ApiResponse<UserProfileResponse> updateUserById(
             @PathVariable Long id,
-            @Parameter(description = "First name") @RequestParam(value = "firstName", required = false) String firstName,
-            @Parameter(description = "Last name") @RequestParam(value = "lastName", required = false) String lastName,
-            @Parameter(description = "Phone number") @RequestParam(value = "phone", required = false) String phone,
-            @Parameter(description = "Address") @RequestParam(value = "address", required = false) String address,
-            @Parameter(description = "Guardian name") @RequestParam(value = "guardianName", required = false) String guardianName,
-            @Parameter(description = "Guardian phone number") @RequestParam(value = "guardianPhone", required = false) String guardianPhone,
-            @Parameter(description = "Date of birth (format: yyyy-MM-dd)") @RequestParam(value = "dateOfBirth", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
-            @Parameter(description = "Profile picture file (JPEG, PNG, GIF, WebP). Max 5MB") @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
-            @Parameter(description = "Set to true to delete existing profile picture") @RequestParam(value = "deleteProfilePicture", required = false, defaultValue = "false") Boolean deleteProfilePicture) {
+            @Valid @RequestBody UpdateProfileRequest request) {
 
-        UpdateProfileRequest request = UpdateProfileRequest.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .phone(phone)
-                .address(address)
-                .guardianName(guardianName)
-                .guardianPhone(guardianPhone)
-                .dateOfBirth(dateOfBirth)
-                .build();
-
-        UserProfileResponse profile = userService.updateUserById(id, request, profilePicture, deleteProfilePicture);
+        UserProfileResponse profile = userService.updateUserById(id, request, null, false);
         return ApiResponse.success("User updated successfully", profile);
     }
 
@@ -134,14 +176,31 @@ public class AdminUserManagementController {
 
     @PutMapping(ApiConstants.USER_DEACTIVATE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('USER:ACTIVATE')")
+    @PreAuthorize("hasAuthority('USER:DEACTIVATE')")
     @Operation(
             summary = "Deactivate user",
-            description = "Deactivate a user account (Admin only)"
+            description = "Deactivate a user account (Admin/Super Admin only)"
     )
     public ApiResponse<Void> deactivateUser(@PathVariable Long id) {
         userService.deactivateUser(id);
         return ApiResponse.success("User deactivated successfully", null);
+    }
+
+    @PutMapping(ApiConstants.USER_SUSPEND)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:SUSPEND')")
+    @Operation(
+            summary = "Suspend user",
+            description = "Suspend a user account (Admin/Super Admin only). " +
+                    "Suspended users cannot log in until unlocked by an admin. " +
+                    "Use this for temporary account restrictions due to policy violations or security concerns."
+    )
+    public ApiResponse<Void> suspendUser(
+            @PathVariable Long id,
+            @Parameter(description = "Reason for suspension (optional)")
+            @RequestParam(required = false) String reason) {
+        userService.suspendUser(id, reason);
+        return ApiResponse.success("User suspended successfully", null);
     }
 
     @PutMapping(ApiConstants.USER_UNLOCK)

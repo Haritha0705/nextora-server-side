@@ -432,3 +432,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.debug("Expired password reset tokens cleaned up");
     }
 }
+

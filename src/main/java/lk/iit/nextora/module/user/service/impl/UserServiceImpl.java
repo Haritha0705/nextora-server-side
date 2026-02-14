@@ -34,6 +34,7 @@ import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
+import lk.iit.nextora.module.user.dto.response.UserStatsSummaryResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import lk.iit.nextora.module.user.mapper.UserProfileMapper;
 import lk.iit.nextora.module.user.service.UserService;
@@ -108,6 +109,83 @@ public class UserServiceImpl implements UserService {
                 () -> userProfileMapper.toFullProfileResponse(currentUser, userResponseMapper),
                 Duration.ofMinutes(15)
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserStatsSummaryResponse getUserStatsSummary() {
+        log.debug("Fetching user statistics summary");
+
+        // Total users count
+        Long totalUsers = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u", Long.class)
+                .getSingleResult();
+
+        // Count by status
+        Long activeUsers = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.status = :status", Long.class)
+                .setParameter("status", UserStatus.ACTIVE)
+                .getSingleResult();
+
+        Long deactivatedUsers = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.status = :status", Long.class)
+                .setParameter("status", UserStatus.DEACTIVATED)
+                .getSingleResult();
+
+        Long suspendedUsers = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.status = :status", Long.class)
+                .setParameter("status", UserStatus.SUSPENDED)
+                .getSingleResult();
+
+        Long deletedUsers = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.status = :status", Long.class)
+                .setParameter("status", UserStatus.DELETED)
+                .getSingleResult();
+
+        Long passwordChangeRequiredUsers = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.status = :status", Long.class)
+                .setParameter("status", UserStatus.PASSWORD_CHANGE_REQUIRED)
+                .getSingleResult();
+
+        // Count by role
+        Long totalStudents = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role = :role", Long.class)
+                .setParameter("role", UserRole.ROLE_STUDENT)
+                .getSingleResult();
+
+        Long totalAdmins = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role = :role", Long.class)
+                .setParameter("role", UserRole.ROLE_ADMIN)
+                .getSingleResult();
+
+        Long totalSuperAdmins = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role = :role", Long.class)
+                .setParameter("role", UserRole.ROLE_SUPER_ADMIN)
+                .getSingleResult();
+
+        Long totalAcademicStaff = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role = :role", Long.class)
+                .setParameter("role", UserRole.ROLE_ACADEMIC_STAFF)
+                .getSingleResult();
+
+        Long totalNonAcademicStaff = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role = :role", Long.class)
+                .setParameter("role", UserRole.ROLE_NON_ACADEMIC_STAFF)
+                .getSingleResult();
+
+        return UserStatsSummaryResponse.builder()
+                .totalUsers(totalUsers)
+                .activeUsers(activeUsers)
+                .deactivatedUsers(deactivatedUsers)
+                .suspendedUsers(suspendedUsers)
+                .deletedUsers(deletedUsers)
+                .passwordChangeRequiredUsers(passwordChangeRequiredUsers)
+                .totalStudents(totalStudents)
+                .totalAdmins(totalAdmins)
+                .totalSuperAdmins(totalSuperAdmins)
+                .totalAcademicStaff(totalAcademicStaff)
+                .totalNonAcademicStaff(totalNonAcademicStaff)
+                .build();
     }
 
     @Override
@@ -362,6 +440,119 @@ public class UserServiceImpl implements UserService {
         // Get paginated results
         List<BaseUser> users = entityManager
                 .createQuery("SELECT u FROM BaseUser u ORDER BY u.createdAt DESC", BaseUser.class)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+        List<UserSummaryResponse> content = users.stream()
+                .map(userProfileMapper::toSummaryResponse)
+                .collect(Collectors.toList());
+
+        Page<UserSummaryResponse> page = new PageImpl<>(content, pageable, totalElements);
+
+        return PagedResponse.<UserSummaryResponse>builder()
+                .content(content)
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<UserSummaryResponse> searchUsers(String keyword, Pageable pageable) {
+        log.debug("Searching users with keyword: {} - page: {}, size: {}",
+                keyword, pageable.getPageNumber(), pageable.getPageSize());
+
+        ValidationUtils.requireNonBlank(keyword, "Search keyword");
+
+        String searchPattern = "%" + keyword.toLowerCase() + "%";
+
+        // Get total count
+        Long totalElements = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE " +
+                        "LOWER(u.email) LIKE :keyword OR " +
+                        "LOWER(u.firstName) LIKE :keyword OR " +
+                        "LOWER(u.lastName) LIKE :keyword OR " +
+                        "LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE :keyword", Long.class)
+                .setParameter("keyword", searchPattern)
+                .getSingleResult();
+
+        // Get paginated results
+        List<BaseUser> users = entityManager
+                .createQuery("SELECT u FROM BaseUser u WHERE " +
+                        "LOWER(u.email) LIKE :keyword OR " +
+                        "LOWER(u.firstName) LIKE :keyword OR " +
+                        "LOWER(u.lastName) LIKE :keyword OR " +
+                        "LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE :keyword " +
+                        "ORDER BY u.createdAt DESC", BaseUser.class)
+                .setParameter("keyword", searchPattern)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+        List<UserSummaryResponse> content = users.stream()
+                .map(userProfileMapper::toSummaryResponse)
+                .collect(Collectors.toList());
+
+        Page<UserSummaryResponse> page = new PageImpl<>(content, pageable, totalElements);
+
+        return PagedResponse.<UserSummaryResponse>builder()
+                .content(content)
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<UserSummaryResponse> filterUsers(List<UserRole> roles, List<UserStatus> statuses, Pageable pageable) {
+        log.debug("Filtering users - roles: {}, statuses: {}, page: {}, size: {}",
+                roles, statuses, pageable.getPageNumber(), pageable.getPageSize());
+
+        StringBuilder queryBuilder = new StringBuilder("SELECT u FROM BaseUser u WHERE 1=1");
+        StringBuilder countQueryBuilder = new StringBuilder("SELECT COUNT(u) FROM BaseUser u WHERE 1=1");
+
+        // Build dynamic query based on filters
+        if (roles != null && !roles.isEmpty()) {
+            queryBuilder.append(" AND u.role IN :roles");
+            countQueryBuilder.append(" AND u.role IN :roles");
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            queryBuilder.append(" AND u.status IN :statuses");
+            countQueryBuilder.append(" AND u.status IN :statuses");
+        }
+
+        queryBuilder.append(" ORDER BY u.createdAt DESC");
+
+        // Get total count
+        var countQuery = entityManager.createQuery(countQueryBuilder.toString(), Long.class);
+        if (roles != null && !roles.isEmpty()) {
+            countQuery.setParameter("roles", roles);
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            countQuery.setParameter("statuses", statuses);
+        }
+        Long totalElements = countQuery.getSingleResult();
+
+        // Get paginated results
+        var dataQuery = entityManager.createQuery(queryBuilder.toString(), BaseUser.class);
+        if (roles != null && !roles.isEmpty()) {
+            dataQuery.setParameter("roles", roles);
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            dataQuery.setParameter("statuses", statuses);
+        }
+        List<BaseUser> users = dataQuery
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
@@ -653,7 +844,7 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setIsActive(false);
-        user.setStatus(UserStatus.DEACTIVATE);
+        user.setStatus(UserStatus.DEACTIVATED);
         entityManager.merge(user);
         entityManager.flush();
 
@@ -661,6 +852,59 @@ public class UserServiceImpl implements UserService {
         cacheService.evictAllUserCaches(id);
 
         log.info("User deactivated successfully: {}", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void suspendUser(Long id, String reason) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Suspending user with ID: {}", id);
+
+        // Check if current user is admin or super admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin or super admin can suspend users"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Prevent suspending yourself
+        String currentEmail = SecurityUtils.getCurrentUserEmail()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+        ValidationUtils.requireFalse(
+                user.getEmail().equals(currentEmail),
+                "Cannot suspend your own account"
+        );
+
+        // Check if user is already suspended
+        if (UserStatus.SUSPENDED.equals(user.getStatus())) {
+            throw new BadRequestException("User is already suspended");
+        }
+
+        // Check if user is deleted
+        if (user.getIsDeleted()) {
+            throw new BadRequestException("Cannot suspend a deleted user");
+        }
+
+        // Suspend the user
+        user.setIsActive(false);
+        user.setStatus(UserStatus.SUSPENDED);
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        log.info("User suspended successfully: {}. Reason: {}",
+                StringUtils.maskEmail(user.getEmail()),
+                reason != null ? reason : "No reason provided");
     }
 
     @Override
@@ -720,7 +964,7 @@ public class UserServiceImpl implements UserService {
         if (!UserStatus.SUSPENDED.equals(user.getStatus())) {
             log.info("User {} is not suspended, current status: {}",
                     StringUtils.maskEmail(user.getEmail()), user.getStatus());
-            throw new IllegalStateException("User is not suspended. Current status: " + user.getStatus());
+            throw new BadRequestException("User is not suspended. Current status: " + user.getStatus());
         }
 
         // Unlock the account
