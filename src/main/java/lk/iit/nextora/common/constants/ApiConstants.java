@@ -54,6 +54,7 @@ public final class ApiConstants {
 
     public static final String USER_ACTIVATE = USER_BY_ID + "/activate";
     public static final String USER_DEACTIVATE = USER_BY_ID + "/deactivate";
+    public static final String USER_SUSPEND = USER_BY_ID + "/suspend";
 
     public static final String USER_UNLOCK = USER_BY_ID + "/unlock";
 

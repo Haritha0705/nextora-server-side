@@ -91,6 +91,15 @@ public interface UserService {
 
     void deactivateUser(Long id);
 
+    /**
+     * Suspend a user account (Admin/Super Admin operation).
+     * Suspended users cannot log in until unlocked by an admin.
+     *
+     * @param id     User ID to suspend
+     * @param reason Optional reason for suspension
+     */
+    void suspendUser(Long id, String reason);
+
     void resetUserPassword(Long id);
 
     void unlockUser(Long id);

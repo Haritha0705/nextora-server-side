@@ -129,7 +129,7 @@ public class UserServiceImpl implements UserService {
 
         Long deactivatedUsers = entityManager
                 .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.status = :status", Long.class)
-                .setParameter("status", UserStatus.DEACTIVATE)
+                .setParameter("status", UserStatus.DEACTIVATED)
                 .getSingleResult();
 
         Long suspendedUsers = entityManager
@@ -844,7 +844,7 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setIsActive(false);
-        user.setStatus(UserStatus.DEACTIVATE);
+        user.setStatus(UserStatus.DEACTIVATED);
         entityManager.merge(user);
         entityManager.flush();
 
@@ -852,6 +852,59 @@ public class UserServiceImpl implements UserService {
         cacheService.evictAllUserCaches(id);
 
         log.info("User deactivated successfully: {}", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void suspendUser(Long id, String reason) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Suspending user with ID: {}", id);
+
+        // Check if current user is admin or super admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin or super admin can suspend users"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Prevent suspending yourself
+        String currentEmail = SecurityUtils.getCurrentUserEmail()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+        ValidationUtils.requireFalse(
+                user.getEmail().equals(currentEmail),
+                "Cannot suspend your own account"
+        );
+
+        // Check if user is already suspended
+        if (UserStatus.SUSPENDED.equals(user.getStatus())) {
+            throw new BadRequestException("User is already suspended");
+        }
+
+        // Check if user is deleted
+        if (user.getIsDeleted()) {
+            throw new BadRequestException("Cannot suspend a deleted user");
+        }
+
+        // Suspend the user
+        user.setIsActive(false);
+        user.setStatus(UserStatus.SUSPENDED);
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        log.info("User suspended successfully: {}. Reason: {}",
+                StringUtils.maskEmail(user.getEmail()),
+                reason != null ? reason : "No reason provided");
     }
 
     @Override
@@ -911,7 +964,7 @@ public class UserServiceImpl implements UserService {
         if (!UserStatus.SUSPENDED.equals(user.getStatus())) {
             log.info("User {} is not suspended, current status: {}",
                     StringUtils.maskEmail(user.getEmail()), user.getStatus());
-            throw new IllegalStateException("User is not suspended. Current status: " + user.getStatus());
+            throw new BadRequestException("User is not suspended. Current status: " + user.getStatus());
         }
 
         // Unlock the account
