@@ -41,7 +41,7 @@ public final class ApiConstants {
     public static final String KUPPI_MY = "/my";
     public static final String KUPPI_SEARCH = "/search";
     public static final String KUPPI_UPCOMING = "/upcoming";
-    public static final String KUPPI_PENDING = "/pending" ;
+    public static final String KUPPI_PENDING = "/pending";
     public static final String KUPPI_ANALYTICS = "/analytics";
     public static final String KUPPI_STATS = "/stats";
     public static final String KUPPI_JOIN = "/join";
@@ -57,6 +57,26 @@ public final class ApiConstants {
     public static final String KUPPI_ADMIN = API_V1 + "/admin/kuppi";
     public static final String KUPPI_ADMIN_SESSIONS = KUPPI_ADMIN + "/sessions";
     public static final String KUPPI_ADMIN_NOTES = KUPPI_ADMIN + "/notes";
+
+    // ==================== Event Endpoints ====================
+
+    // Event Module
+    public static final String EVENTS = API_V1 + "/events";
+    public static final String EVENT_BY_ID = "/{eventId}";
+    public static final String EVENT_SEARCH = "/search";
+    public static final String EVENT_UPCOMING = "/upcoming";
+    public static final String EVENT_ONGOING = "/ongoing";
+    public static final String EVENT_PAST = "/past";
+    public static final String EVENT_MY = "/my";
+    public static final String EVENT_PUBLISH = "/publish";
+    public static final String EVENT_CANCEL = "/cancel";
+    public static final String EVENT_RESCHEDULE = "/reschedule";
+    public static final String EVENT_ANALYTICS = "/analytics";
+    public static final String EVENT_STATS = "/stats";
+
+    // Event Admin endpoints
+    public static final String EVENT_ADMIN = API_V1 + "/admin/events";
+    public static final String EVENT_ADMIN_BY_ID = EVENT_ADMIN + "/{eventId}";
 
     // ==================== Club & Voting Endpoints ====================
 
@@ -154,9 +174,8 @@ public final class ApiConstants {
 
     public static final String VOTING_SUPER_ADMIN_PERMANENT_DELETE_CLUB = VOTING_ADMIN + "/clubs/{clubId}/permanent";
     public static final String VOTING_SUPER_ADMIN_RESET_VOTES = VOTING_ADMIN + "/elections/{electionId}/reset-votes";
-    public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = VOTING_ADMIN + "/voters/{voterId}/invalidate-votes";
+    public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = VOTING_ADMIN
+            + "/voters/{voterId}/invalidate-votes";
     public static final String VOTING_SUPER_ADMIN_CONFIG = VOTING_ADMIN + "/config";
 
 }
-
-
