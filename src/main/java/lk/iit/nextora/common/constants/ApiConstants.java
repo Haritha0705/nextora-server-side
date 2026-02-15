@@ -13,8 +13,8 @@ public final class ApiConstants {
     public static final String API_BASE = "/api";
     public static final String API_VERSION = "/v1";
     public static final String API_V1 = API_BASE + API_VERSION;
-    public static final String ADMIN = API_V1 + "/admin" ;
-    public static final String SUPER_ADMIN = API_V1 + "/super-admin" ;
+    public static final String ADMIN = API_V1 + "/admin";
+    public static final String SUPER_ADMIN = API_V1 + "/super-admin";
     public static final String AUTH = API_V1 + "/auth";
     public static final String KUPPI = API_V1 + "/kuppi";
     public static final String USER = API_V1 + "/user";
@@ -91,7 +91,7 @@ public final class ApiConstants {
     public static final String KUPPI_MY = "/my";
     public static final String KUPPI_SEARCH = "/search";
     public static final String KUPPI_UPCOMING = "/upcoming";
-    public static final String KUPPI_PENDING = "/pending" ;
+    public static final String KUPPI_PENDING = "/pending";
     public static final String KUPPI_ANALYTICS = KUPPI_MY + "/analytics";
     public static final String KUPPI_STATS = "/stats";
     public static final String KUPPI_JOIN = "/join";
@@ -101,12 +101,11 @@ public final class ApiConstants {
     public static final String KUPPI_REJECT = "/reject";
 
 
-
     public static final String KUPPI_SESSION_BY_ID = "/{sessionId}";
     public static final String KUPPI_SEARCH_SUBJECT = "/search/subject";
     public static final String KUPPI_SEARCH_HOST = "/search/host";
     public static final String KUPPI_SEARCH_DATE = "/search/date";
-    public static final String KUPPI_CANCEL = KUPPI_SESSION_BY_ID +"/cancel";
+    public static final String KUPPI_CANCEL = KUPPI_SESSION_BY_ID + "/cancel";
     public static final String KUPPI_RESCHEDULE = KUPPI_SESSION_BY_ID + "/reschedule";
 
     // Kuppi Admin endpoints
@@ -158,6 +157,26 @@ public final class ApiConstants {
     public static final String KUPPI_STUDENTS_BY_FACULTY = "/faculty/{faculty}";
     public static final String KUPPI_STUDENTS_TOP_RATED = "/top-rated";
 
+    // ==================== Event Endpoints ====================
+
+    // Event Module
+    public static final String EVENTS = API_V1 + "/events";
+    public static final String EVENT_BY_ID = "/{eventId}";
+    public static final String EVENT_SEARCH = "/search";
+    public static final String EVENT_UPCOMING = "/upcoming";
+    public static final String EVENT_ONGOING = "/ongoing";
+    public static final String EVENT_PAST = "/past";
+    public static final String EVENT_MY = "/my";
+    public static final String EVENT_PUBLISH = "/publish";
+    public static final String EVENT_CANCEL = "/cancel";
+    public static final String EVENT_RESCHEDULE = "/reschedule";
+    public static final String EVENT_ANALYTICS = "/analytics";
+    public static final String EVENT_STATS = "/stats";
+
+    // Event Admin endpoints
+    public static final String EVENT_ADMIN = API_V1 + "/admin/events";
+    public static final String EVENT_ADMIN_BY_ID = EVENT_ADMIN + "/{eventId}";
+
     // ==================== Club & Voting Endpoints ====================
 
     // Clubs (voting module - for elections)
@@ -167,7 +186,7 @@ public final class ApiConstants {
     public static final String CLUB_SEARCH = "/search";
     public static final String CLUB_FACULTY = "/faculty/{faculty}";
     public static final String CLUB_OPEN_REGISTRATION = "/open-registration";
-    public static final String CLUB_JOIN =  "/join";
+    public static final String CLUB_JOIN = "/join";
     public static final String CLUB_LEAVE = "/{clubId}/leave";
 
     public static final String CLUB_MEMBERS = "/{clubId}/members";
@@ -235,7 +254,7 @@ public final class ApiConstants {
     public static final String ELECTION_OPEN_NOMINATIONS = ELECTION_BY_ID + "/open-nominations";
     public static final String ELECTION_CLOSE_NOMINATIONS = ELECTION_BY_ID + "/close-nominations";
     public static final String ELECTION_OPEN_VOTING = ELECTION_BY_ID + "/open-voting";
-    public static final String ELECTION_CLOSE_VOTING = ELECTION_BY_ID +"/close-voting";
+    public static final String ELECTION_CLOSE_VOTING = ELECTION_BY_ID + "/close-voting";
     public static final String ELECTION_PUBLISH_RESULTS = ELECTION_BY_ID + "/publish-results";
     public static final String ELECTION_CANCEL = ELECTION_BY_ID + "/cancel";
 
@@ -244,13 +263,13 @@ public final class ApiConstants {
     public static final String CANDIDATE_BY_ID = CANDIDATE + "/{candidateId}";
     public static final String CANDIDATE_NOMINATE = CANDIDATE + "/nominate";
     public static final String CANDIDATE_UPDATE = CANDIDATE_NOMINATE + "/{candidateId}";
-    public static final String CANDIDATE_DELETE =  CANDIDATE_NOMINATE + "/{candidateId}";
-    public static final String CANDIDATE_REVIEW =  CANDIDATE + "/review";
-    public static final String CANDIDATE_WITHDRAW =  CANDIDATE_BY_ID + "/withdraw";
+    public static final String CANDIDATE_DELETE = CANDIDATE_NOMINATE + "/{candidateId}";
+    public static final String CANDIDATE_REVIEW = CANDIDATE + "/review";
+    public static final String CANDIDATE_WITHDRAW = CANDIDATE_BY_ID + "/withdraw";
     public static final String ELECTION_CANDIDATES = ELECTION_BY_ID + CANDIDATE;
     public static final String CANDIDATES_APPROVED = ELECTION_BY_ID + CANDIDATE + "/approved";
     public static final String CANDIDATES_PENDING = ELECTION_BY_ID + CANDIDATE + "/pending";
-    public static final String MY_CANDIDACIES =  CANDIDATE + "/my";
+    public static final String MY_CANDIDACIES = CANDIDATE + "/my";
 
     // Voting endpoints
     public static final String VOTE = "/vote";
