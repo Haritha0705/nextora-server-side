@@ -6,8 +6,10 @@ import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
+import lk.iit.nextora.common.enums.EventType;
 import lk.iit.nextora.module.event.dto.request.CreateEventRequest;
 import lk.iit.nextora.module.event.dto.request.UpdateEventRequest;
+import lk.iit.nextora.module.event.dto.response.EventAnalyticsResponse;
 import lk.iit.nextora.module.event.dto.response.EventResponse;
 import lk.iit.nextora.module.event.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +53,7 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}")
-    @Operation(summary = "Get event by ID", description = "View a specific event")
+    @Operation(summary = "Get event by ID", description = "View a specific event (increments view count)")
     @PreAuthorize("hasAuthority('EVENT:READ')")
     public ApiResponse<EventResponse> getEventById(@PathVariable Long eventId) {
         EventResponse response = eventService.getEventById(eventId);
@@ -59,7 +61,7 @@ public class EventController {
     }
 
     @GetMapping(ApiConstants.EVENT_SEARCH)
-    @Operation(summary = "Search events", description = "Search events by keyword")
+    @Operation(summary = "Search events", description = "Search events by keyword (title + description)")
     @PreAuthorize("hasAuthority('EVENT:READ')")
     public ApiResponse<PagedResponse<EventResponse>> searchEvents(
             @RequestParam String keyword,
@@ -121,6 +123,45 @@ public class EventController {
         return ApiResponse.success("Search completed successfully", response);
     }
 
+    @GetMapping("/search/type")
+    @Operation(summary = "Search by event type", description = "Filter events by type (WORKSHOP, SEMINAR, etc.)")
+    @PreAuthorize("hasAuthority('EVENT:READ')")
+    public ApiResponse<PagedResponse<EventResponse>> searchByType(
+            @RequestParam EventType eventType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponse<EventResponse> response = eventService.searchByType(eventType, pageable);
+        return ApiResponse.success("Search completed successfully", response);
+    }
+
+    @GetMapping("/search/location")
+    @Operation(summary = "Search by location", description = "Search events by location")
+    @PreAuthorize("hasAuthority('EVENT:READ')")
+    public ApiResponse<PagedResponse<EventResponse>> searchByLocation(
+            @RequestParam String location,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponse<EventResponse> response = eventService.searchByLocation(location, pageable);
+        return ApiResponse.success("Search completed successfully", response);
+    }
+
+    @GetMapping("/search/creator")
+    @Operation(summary = "Search by creator", description = "Search events by creator name")
+    @PreAuthorize("hasAuthority('EVENT:READ')")
+    public ApiResponse<PagedResponse<EventResponse>> searchByCreatorName(
+            @RequestParam String creatorName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponse<EventResponse> response = eventService.searchByCreatorName(creatorName, pageable);
+        return ApiResponse.success("Search completed successfully", response);
+    }
+
     // ==================== Creator Endpoints ====================
 
     @PostMapping
@@ -151,11 +192,24 @@ public class EventController {
     }
 
     @PostMapping("/{eventId}" + ApiConstants.EVENT_CANCEL)
-    @Operation(summary = "Cancel event", description = "Cancel own event")
+    @Operation(summary = "Cancel event", description = "Cancel own event with optional reason")
     @PreAuthorize("hasAuthority('EVENT:UPDATE')")
-    public ApiResponse<EventResponse> cancelEvent(@PathVariable Long eventId) {
-        EventResponse response = eventService.cancelEvent(eventId);
+    public ApiResponse<EventResponse> cancelEvent(
+            @PathVariable Long eventId,
+            @RequestParam(required = false) String reason) {
+        EventResponse response = eventService.cancelEvent(eventId, reason);
         return ApiResponse.success("Event cancelled successfully", response);
+    }
+
+    @PostMapping("/{eventId}" + ApiConstants.EVENT_RESCHEDULE)
+    @Operation(summary = "Reschedule event", description = "Reschedule own event")
+    @PreAuthorize("hasAuthority('EVENT:UPDATE')")
+    public ApiResponse<EventResponse> rescheduleEvent(
+            @PathVariable Long eventId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime newStartTime,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime newEndTime) {
+        EventResponse response = eventService.rescheduleEvent(eventId, newStartTime, newEndTime);
+        return ApiResponse.success("Event rescheduled successfully", response);
     }
 
     @GetMapping(ApiConstants.EVENT_MY)
@@ -168,5 +222,13 @@ public class EventController {
         Pageable pageable = PageRequest.of(page, size);
         PagedResponse<EventResponse> response = eventService.getMyEvents(pageable);
         return ApiResponse.success("My events retrieved successfully", response);
+    }
+
+    @GetMapping(ApiConstants.EVENT_MY + ApiConstants.EVENT_ANALYTICS)
+    @Operation(summary = "Get my analytics", description = "Get analytics for own events")
+    @PreAuthorize("hasAuthority('EVENT:READ')")
+    public ApiResponse<EventAnalyticsResponse> getMyAnalytics() {
+        EventAnalyticsResponse response = eventService.getMyAnalytics();
+        return ApiResponse.success("Analytics retrieved successfully", response);
     }
 }
