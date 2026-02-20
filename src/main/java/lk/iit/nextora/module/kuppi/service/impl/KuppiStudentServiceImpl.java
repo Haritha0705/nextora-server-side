@@ -164,6 +164,7 @@ public class KuppiStudentServiceImpl implements KuppiStudentService {
         // Get notes statistics
         Long totalNotesUploaded = noteRepository.countByUploadedByIdAndIsDeletedFalse(student.getId());
 
+
         // Get recent sessions
         List<KuppiSession> recentSessionsList = sessionRepository.findRecentSessionsByHost(
                 student.getId(), PageRequest.of(0, RECENT_SESSIONS_LIMIT));
@@ -220,4 +221,3 @@ public class KuppiStudentServiceImpl implements KuppiStudentService {
                 .build();
     }
 }
-

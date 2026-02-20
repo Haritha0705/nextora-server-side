@@ -61,6 +61,7 @@ public class KuppiStudentResponse {
 
     private Long upcomingSessions;
 
+
     // ==================== Metadata ====================
 
     private LocalDateTime approvedAt;
