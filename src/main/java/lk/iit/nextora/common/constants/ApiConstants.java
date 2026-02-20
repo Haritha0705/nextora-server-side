@@ -37,6 +37,7 @@ public final class ApiConstants {
     // Admin User Management endpoints
     public static final String USER_ADMIN = ADMIN + "/user";
     public static final String USER_SUPER_ADMIN = SUPER_ADMIN + "/user";
+
     public static final String ADMIN_CREATE_USER = "";
     public static final String ADMIN_CHANGE_PASSWORD_FIRST_LOGIN = "/change-password-first-login";
     public static final String ADMIN_USER_SEARCH = "/search";
@@ -104,9 +105,9 @@ public final class ApiConstants {
     public static final String KUPPI_CANCEL = KUPPI_SESSION_BY_ID +"/cancel";
     public static final String KUPPI_RESCHEDULE = KUPPI_SESSION_BY_ID + "/reschedule";
 
-
     // Kuppi Admin endpoints
-    public static final String KUPPI_ADMIN = API_V1 + "/admin/kuppi";
+    public static final String KUPPI_ADMIN = ADMIN + "/kuppi";
+    public static final String KUPPI_SUPER_ADMIN = SUPER_ADMIN + "/kuppi";
 
     public static final String KUPPI_ADMIN_SESSIONS = KUPPI_ADMIN + "/sessions";
     public static final String KUPPI_ADMIN_SESSIONS_BY_ID = "/sessions/{sessionId}";
@@ -133,14 +134,26 @@ public final class ApiConstants {
     public static final String KUPPI_APPLICATION_IS_KUPPI_STUDENT = "/is-kuppi-student";
 
     // Kuppi Application Admin endpoints
-    public static final String KUPPI_ADMIN_APPLICATIONS = KUPPI_ADMIN + "/applications";
-    public static final String KUPPI_ADMIN_APPLICATION_BY_ID = "/{applicationId}";
-    public static final String KUPPI_ADMIN_APPLICATION_APPROVE = "/{applicationId}/approve";
-    public static final String KUPPI_ADMIN_APPLICATION_REJECT = "/{applicationId}/reject";
-    public static final String KUPPI_ADMIN_APPLICATION_UNDER_REVIEW = "/{applicationId}/under-review";
-    public static final String KUPPI_ADMIN_APPLICATION_STATS = "/stats";
-    public static final String KUPPI_ADMIN_APPLICATION_REVOKE = "/revoke/{studentId}";
-    public static final String KUPPI_ADMIN_APPLICATION_PERMANENT = "/{applicationId}/permanent";
+    public static final String KUPPI_ADMIN_APPLICATION_BASE = "/applications";
+    public static final String KUPPI_ADMIN_APPLICATION_BY_ID = KUPPI_ADMIN_APPLICATION_BASE + "/{applicationId}";
+    public static final String KUPPI_ADMIN_APPLICATION_STATUS = KUPPI_ADMIN_APPLICATION_BASE + "/status/{status}";
+    public static final String KUPPI_ADMIN_APPLICATION_PENDING = KUPPI_ADMIN_APPLICATION_BASE + "/pending";
+    public static final String KUPPI_ADMIN_APPLICATION_ACTIVE = KUPPI_ADMIN_APPLICATION_BASE + "/active";
+    public static final String KUPPI_ADMIN_APPLICATION_SEARCH = KUPPI_ADMIN_APPLICATION_BASE + "/search";
+    public static final String KUPPI_ADMIN_APPLICATION_APPROVE = KUPPI_ADMIN_APPLICATION_BASE + "/{applicationId}/approve";
+    public static final String KUPPI_ADMIN_APPLICATION_REJECT = KUPPI_ADMIN_APPLICATION_BASE + "/{applicationId}/reject";
+    public static final String KUPPI_ADMIN_APPLICATION_UNDER_REVIEW = KUPPI_ADMIN_APPLICATION_BASE + "/{applicationId}/under-review";
+    public static final String KUPPI_ADMIN_APPLICATION_STATS = KUPPI_ADMIN_APPLICATION_BASE + "/stats";
+    public static final String KUPPI_ADMIN_APPLICATION_REVOKE = KUPPI_ADMIN_APPLICATION_BASE + "/revoke/{studentId}";
+    public static final String KUPPI_ADMIN_APPLICATION_PERMANENT = KUPPI_ADMIN_APPLICATION_BASE + "/{applicationId}/permanent";
+
+    // Kuppi Students endpoints (View Kuppi Students who can host sessions)
+    public static final String KUPPI_STUDENTS = KUPPI + "/students";
+    public static final String KUPPI_STUDENT_BY_ID = "/{studentId}";
+    public static final String KUPPI_STUDENTS_SEARCH_NAME = "/search/name";
+    public static final String KUPPI_STUDENTS_SEARCH_SUBJECT = "/search/subject";
+    public static final String KUPPI_STUDENTS_BY_FACULTY = "/faculty/{faculty}";
+    public static final String KUPPI_STUDENTS_TOP_RATED = "/top-rated";
 
     // ==================== Club & Voting Endpoints ====================
 

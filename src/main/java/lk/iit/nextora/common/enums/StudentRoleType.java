@@ -30,6 +30,7 @@ public enum StudentRoleType {
                     Permission.KUPPI_JOIN,
                     Permission.KUPPI_LEAVE,
                     Permission.KUPPI_FEEDBACK,
+
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,

@@ -21,13 +21,16 @@ public enum UserRole {
             Set.of(
                     Permission.USER_READ,
                     Permission.USER_UPDATE,
+
                     Permission.KUPPI_READ,
                     Permission.KUPPI_JOIN,
                     Permission.KUPPI_LEAVE,
                     Permission.KUPPI_FEEDBACK,
+                    
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
+
                     Permission.CLUB_READ,
                     Permission.BATCH_READ,
                     Permission.EVENT_READ,

@@ -76,7 +76,8 @@ public class KuppiSession extends BaseEntity {
 
     public boolean isJoinable() {
         LocalDateTime now = LocalDateTime.now();
-        return now.isBefore(scheduledEndTime) && status == KuppiSessionStatus.SCHEDULED;
+        return now.isBefore(scheduledEndTime) &&
+               (status == KuppiSessionStatus.SCHEDULED || status == KuppiSessionStatus.LIVE);
     }
 
     public void incrementViewCount() {

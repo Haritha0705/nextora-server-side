@@ -118,7 +118,7 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
         Long currentUserId = securityService.getCurrentUserId();
 
         // Check if user is a student
-        if (!isCurrentUserStudent()) {
+        if (isCurrentUserNotStudent()) {
             return false;
         }
 
@@ -137,7 +137,7 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
     public boolean isKuppiStudent() {
         Long currentUserId = securityService.getCurrentUserId();
 
-        if (!isCurrentUserStudent()) {
+        if (isCurrentUserNotStudent()) {
             return false;
         }
 
@@ -337,10 +337,10 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
     }
 
-    private boolean isCurrentUserStudent() {
+    private boolean isCurrentUserNotStudent() {
         return securityService.getCurrentUser()
-                .map(user -> user.getRole() == UserRole.ROLE_STUDENT)
-                .orElse(false);
+                .map(user -> user.getRole() != UserRole.ROLE_STUDENT)
+                .orElse(true);
     }
 
     private void validateCanApply(Student student) {

@@ -12,11 +12,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Entity representing a Kuppi Student application.
- * Normal students apply to become Kuppi Students.
- * Admin, Super Admin, or Academic Staff can approve/reject.
- */
 @Entity
 @Table(name = "kuppi_applications", indexes = {
         @Index(name = "idx_kuppi_app_student", columnList = "student_id"),
@@ -164,7 +159,6 @@ public class KuppiApplication extends BaseEntity {
         this.reviewedBy = reviewer;
     }
 
-    @PrePersist
     @Override
     protected void onCreate() {
         super.onCreate();
