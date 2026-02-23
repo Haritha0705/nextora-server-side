@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.lostandfound.dto.response;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,4 +15,5 @@ public class ItemResponse {
     private String location;
     private String contactNumber;
     private boolean active;
+    private LocalDateTime createdAt;
 }

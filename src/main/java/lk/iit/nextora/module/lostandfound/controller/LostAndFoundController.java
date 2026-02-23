@@ -4,7 +4,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.module.lostandfound.dto.request.CreateFoundItemRequest;
+import lk.iit.nextora.module.lostandfound.dto.request.CreateLostItemRequest;
 import lk.iit.nextora.module.lostandfound.dto.response.ItemListResponse;
+import lk.iit.nextora.module.lostandfound.dto.response.ItemResponse;
+import lk.iit.nextora.module.lostandfound.dto.request.UpdateItemRequest;
+import lk.iit.nextora.module.lostandfound.dto.request.SearchItemRequest;
+import lk.iit.nextora.module.lostandfound.service.FoundItemService;
+import lk.iit.nextora.module.lostandfound.service.LostItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
