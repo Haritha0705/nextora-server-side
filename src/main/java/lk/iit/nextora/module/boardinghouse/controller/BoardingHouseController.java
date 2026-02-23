@@ -17,44 +17,44 @@ public class BoardingHouseController {
 
     private final BoardingHouseService service;
 
-    //  Admin / Super Admin only
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    //  Admin / Super Admin only -> replaced with permission-based check
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:CREATE')")
     @PostMapping
     public BoardingHouseResponse create(@RequestBody CreateBoardingHouseRequest request) {
         return service.create(request);
     }
 
-    //  Admin / Super Admin only
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    //  Admin / Super Admin only -> replaced with permission-based check
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:UPDATE')")
     @PutMapping("/{id}")
     public BoardingHouseResponse update(@PathVariable Long id,
                                         @RequestBody UpdateBoardingHouseRequest request) {
         return service.update(id, request);
     }
 
-    //  Admin / Super Admin only
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    //  Admin / Super Admin only -> replaced with permission-based check
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:DELETE')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
-    //  Student + Admin + Super Admin
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','SUPER_ADMIN')")
+    //  Student + Admin + Super Admin -> replaced with permission-based check for read
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
     @GetMapping("/{id}")
     public BoardingHouseResponse getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
-    //  Student + Admin + Super Admin
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','SUPER_ADMIN')")
+    //  Student + Admin + Super Admin -> replaced with permission-based check for read
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
     @GetMapping
     public PagedResponse<BoardingHouseResponse> getAll(Pageable pageable) {
         return service.getAll(pageable);
     }
 
-    //  Student + Admin + Super Admin
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN','SUPER_ADMIN')")
+    //  Student + Admin + Super Admin -> replaced with permission-based check for read
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
     @GetMapping("/search")
     public PagedResponse<BoardingHouseResponse> filter(
             @RequestParam(required = false) String city,
