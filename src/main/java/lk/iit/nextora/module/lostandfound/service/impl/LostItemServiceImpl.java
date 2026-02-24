@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.lostandfound.service.impl;
 
+import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.module.lostandfound.dto.request.CreateLostItemRequest;
 import lk.iit.nextora.module.lostandfound.dto.request.SearchItemRequest;
 import lk.iit.nextora.module.lostandfound.dto.request.UpdateItemRequest;
@@ -12,6 +13,8 @@ import lk.iit.nextora.module.lostandfound.repository.ItemCategoryRepository;
 import lk.iit.nextora.module.lostandfound.repository.LostItemRepository;
 import lk.iit.nextora.module.lostandfound.service.LostItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
@@ -69,5 +72,36 @@ public class LostItemServiceImpl implements LostItemService {
                         .collect(Collectors.toList()))
                 .totalElements(items.size())
                 .build();
+    }
+
+    @Override
+    public PagedResponse<ItemResponse> searchLostItems(String keyword, String category, Pageable pageable) {
+        Page<LostItem> page;
+
+        if (category != null && !category.isBlank()) {
+            // resolve category id by name
+            ItemCategory cat = categoryRepository.findAll()
+                    .stream()
+                    .filter(c -> c.getName().equalsIgnoreCase(category))
+                    .findFirst()
+                    .orElse(null);
+
+            if (cat != null) {
+                page = lostItemRepository.findByCategoryIdAndActiveTrue(cat.getId(), pageable);
+                return PagedResponse.of(page.map(LostItemMapper::toResponse));
+            }
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            // try title search first, then location
+            page = lostItemRepository.searchByTitle(keyword, pageable);
+            if (page.isEmpty()) {
+                page = lostItemRepository.searchByLocation(keyword, pageable);
+            }
+            return PagedResponse.of(page.map(LostItemMapper::toResponse));
+        }
+
+        page = lostItemRepository.findByActiveTrue(pageable);
+        return PagedResponse.of(page.map(LostItemMapper::toResponse));
     }
 }
