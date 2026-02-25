@@ -1,32 +1,46 @@
 package lk.iit.nextora.module.boardinghouse.dto.request;
 
+import jakarta.validation.constraints.NotNull;
+import lk.iit.nextora.common.enums.Gender;
 import lombok.*;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UpdateBoardingHouseRequest {
 
-    private String name;
+    @NotNull
+    private Long id;
+
+    private String title;
+
     private String description;
-    private Double monthlyRent;
-    private Boolean keyMoneyRequired;
-    private String genderType;
-    private Boolean withFood;
-    private Boolean withFurniture;
 
-    // Location
     private String city;
-    private String address;
-    private Double latitude;
-    private Double longitude;
 
-    // Contact
+    private String address;
+
+    private Double price;
+
+    private Gender gender;
+
     private String contactNumber1;
+
     private String contactNumber2;
 
-    // Bills
+    private Boolean keyMoneyRequired;
+
     private Boolean waterBillIncluded;
+
     private Boolean electricityBillIncluded;
+
+    private Boolean foodIncluded;
+
+    private Boolean furnitureIncluded;
+
+    private Double latitude;
+
+    private Double longitude;
 }
