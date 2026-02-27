@@ -186,6 +186,13 @@ public final class ApiConstants {
     public static final String ELECTION_ADMIN_PROCESS_STATUS_PATH = "/process-status-updates";
     public static final String ELECTION_ADMIN_RESET_VOTES_PATH = "/{electionId}/reset-votes";
 
+    // java
+    public static final String BOARDINGHOUSE_PUBLIC = API_V1 + "/boardinghouse";
+    public static final String BOARDINGHOUSE_ADMIN = API_V1 + "/admin/boardinghouse";
+
+    public static final String BOARDINGHOUSE_HOUSES = "/houses";
+    public static final String BOARDINGHOUSE_HOUSES_BY_ID = "/houses/{houseId}";
+    public static final String BOARDINGHOUSE_HOUSES_PERMANENT = "/houses/{houseId}/permanent";
 
 
 
