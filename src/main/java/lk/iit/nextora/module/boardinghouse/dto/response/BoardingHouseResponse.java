@@ -2,32 +2,42 @@ package lk.iit.nextora.module.boardinghouse.dto.response;
 
 import lombok.*;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BoardingHouseResponse {
 
     private Long id;
-    private String name;
+
+    private String title;
+
     private String description;
-    private Double monthlyRent;
-    private Boolean keyMoneyRequired;
-    private String genderType;
-    private Boolean withFood;
-    private Boolean withFurniture;
 
-    // Location
+    private Double price;
+
     private String city;
-    private String address;
-    private Double latitude;
-    private Double longitude;
 
-    // Contact
+    private String address;
+
+    private String gender;
+
     private String contactNumber1;
+
     private String contactNumber2;
 
-    // Bills
+    private Boolean keyMoneyRequired;
+
     private Boolean waterBillIncluded;
+
     private Boolean electricityBillIncluded;
+
+    private Boolean foodIncluded;
+
+    private Boolean furnitureIncluded;
+
+    private Double latitude;
+
+    private Double longitude;
 }
