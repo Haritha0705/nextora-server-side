@@ -1,70 +1,50 @@
 package lk.iit.nextora.module.boardinghouse.controller;
 
-import lk.iit.nextora.common.dto.PagedResponse;
+import jakarta.validation.Valid;
+import lk.iit.nextora.common.constants.ApiConstants;
+import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.module.boardinghouse.dto.request.CreateBoardingHouseRequest;
-import lk.iit.nextora.module.boardinghouse.dto.request.UpdateBoardingHouseRequest;
 import lk.iit.nextora.module.boardinghouse.dto.response.BoardingHouseResponse;
 import lk.iit.nextora.module.boardinghouse.service.BoardingHouseService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/boarding-houses")
+@RequestMapping(ApiConstants.BOARDINGHOUSE_PUBLIC)
 @RequiredArgsConstructor
 public class BoardingHouseController {
 
     private final BoardingHouseService service;
 
-    //  Admin / Super Admin only -> replaced with permission-based check
-    @PreAuthorize("hasAuthority('BOARDING_HOUSE:CREATE')")
-    @PostMapping
-    public BoardingHouseResponse create(@RequestBody CreateBoardingHouseRequest request) {
-        return service.create(request);
+    @PostMapping(ApiConstants.BOARDINGHOUSE_HOUSES)
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<BoardingHouseResponse> create(
+            @Valid @RequestBody CreateBoardingHouseRequest request) {
+
+        return ApiResponse.success(
+                "Created successfully",
+                service.create(request)
+        );
     }
 
-    //  Admin / Super Admin only -> replaced with permission-based check
-    @PreAuthorize("hasAuthority('BOARDING_HOUSE:UPDATE')")
-    @PutMapping("/{id}")
-    public BoardingHouseResponse update(@PathVariable Long id,
-                                        @RequestBody UpdateBoardingHouseRequest request) {
-        return service.update(id, request);
+    @GetMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID)
+    public ApiResponse<BoardingHouseResponse> getById(
+            @PathVariable Long houseId) {
+
+        return ApiResponse.success(
+                "Retrieved successfully",
+                service.getById(houseId)
+        );
     }
 
-    //  Admin / Super Admin only -> replaced with permission-based check
-    @PreAuthorize("hasAuthority('BOARDING_HOUSE:DELETE')")
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        service.delete(id);
-    }
+    @DeleteMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ApiResponse<Void> delete(
+            @PathVariable Long houseId) {
 
-    //  Student + Admin + Super Admin -> replaced with permission-based check for read
-    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
-    @GetMapping("/{id}")
-    public BoardingHouseResponse getById(@PathVariable Long id) {
-        return service.getById(id);
-    }
+        service.delete(houseId);
 
-    //  Student + Admin + Super Admin -> replaced with permission-based check for read
-    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
-    @GetMapping
-    public PagedResponse<BoardingHouseResponse> getAll(Pageable pageable) {
-        return service.getAll(pageable);
-    }
-
-    //  Student + Admin + Super Admin -> replaced with permission-based check for read
-    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
-    @GetMapping("/search")
-    public PagedResponse<BoardingHouseResponse> filter(
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) Double minRent,
-            @RequestParam(required = false) Double maxRent,
-            @RequestParam(required = false) String gender,
-            @RequestParam(required = false) Boolean withFood,
-            @RequestParam(required = false) Boolean withFurniture,
-            Pageable pageable
-    ) {
-        return service.filter(city, minRent, maxRent, gender, withFood, withFurniture, pageable);
+        return ApiResponse.success("Deleted successfully");
     }
 }
