@@ -130,4 +130,15 @@ public interface KuppiSessionRepository extends JpaRepository<KuppiSession, Long
            "AND k.isDeleted = false")
     List<KuppiSession> findMissedScheduledSessions(@Param("scheduledStatus") KuppiSessionStatus scheduledStatus,
                                                     @Param("now") LocalDateTime now);
+
+    /**
+     * Find SCHEDULED sessions starting between two times (for reminder notifications).
+     * Used to find sessions starting within the next N minutes.
+     */
+    @Query("SELECT k FROM KuppiSession k WHERE k.status = :status " +
+           "AND k.scheduledStartTime BETWEEN :from AND :to " +
+           "AND k.isDeleted = false")
+    List<KuppiSession> findSessionsStartingBetween(@Param("status") KuppiSessionStatus status,
+                                                    @Param("from") LocalDateTime from,
+                                                    @Param("to") LocalDateTime to);
 }

@@ -21,6 +21,7 @@ public final class ApiConstants {
     public static final String CLUBS = API_V1 + "/club";
     public static final String ELECTIONS = API_V1 + "/club/election";
     public static final String PUSH = API_V1 + "/push";
+    public static final String NOTIFICATIONS = API_V1 + "/notifications";
 
     // Authentication endpoints
 
