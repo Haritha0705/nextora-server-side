@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.kuppi.dto.request;
 
 import jakarta.validation.constraints.*;
+import lk.iit.nextora.common.enums.ExperienceLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,10 +29,8 @@ public class KuppiApplicationRequest {
     @Size(min = 1, max = 10, message = "You can select between 1 and 10 subjects")
     private Set<String> subjectsToTeach;
 
-    @NotBlank(message = "Experience level is required")
-    @Pattern(regexp = "^(BEGINNER|INTERMEDIATE|ADVANCED)$",
-            message = "Experience level must be BEGINNER, INTERMEDIATE, or ADVANCED")
-    private String preferredExperienceLevel;
+    @NotNull(message = "Experience level is required")
+    private ExperienceLevel preferredExperienceLevel;
 
     @Size(max = 500, message = "Availability cannot exceed 500 characters")
     private String availability;

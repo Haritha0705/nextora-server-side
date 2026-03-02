@@ -7,6 +7,8 @@ import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
+import lk.iit.nextora.common.util.FileUtils;
+import lk.iit.nextora.config.S3.S3Service;
 import lk.iit.nextora.config.security.SecurityService;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.entity.Student;
@@ -25,10 +27,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,26 +51,47 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
     private final StudentRepository studentRepository;
     private final SecurityService securityService;
     private final KuppiApplicationMapper applicationMapper;
+    private final S3Service s3Service;
+
+    private static final String ACADEMIC_RESULTS_FOLDER = "kuppi-applications/academic-results";
+    private static final long MAX_ACADEMIC_RESULTS_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+            "application/pdf",
+            "image/jpeg",
+            "image/jpg",
+            "image/png"
+    );
 
     // ==================== Student Operations ====================
 
     @Override
     @Transactional
-    public KuppiApplicationResponse submitApplication(KuppiApplicationRequest request) {
+    public KuppiApplicationResponse submitApplication(KuppiApplicationRequest request, MultipartFile academicResults) {
         Long currentUserId = securityService.getCurrentUserId();
         Student student = findStudentById(currentUserId);
 
         // Validate student can apply
         validateCanApply(student);
 
+        // Validate academic results file
+        validateAcademicResultsFile(academicResults);
+
         // Create application
         KuppiApplication application = applicationMapper.toEntity(request, student);
         application.setSubmittedAt(LocalDateTime.now());
 
+        // Upload academic results to S3
+        String s3Key = s3Service.uploadFile(academicResults, ACADEMIC_RESULTS_FOLDER);
+        String fileUrl = s3Service.getPublicUrl(s3Key);
+
+        application.setAcademicResultsKey(s3Key);
+        application.setAcademicResultsUrl(fileUrl);
+        application.setAcademicResultsFileName(academicResults.getOriginalFilename());
+
         application = applicationRepository.save(application);
 
-        log.info("Kuppi Student application submitted by student {} (ID: {})",
-                student.getStudentId(), application.getId());
+        log.info("Kuppi Student application submitted by student {} (ID: {}) with academic results: {}",
+                student.getStudentId(), application.getId(), s3Key);
 
         return applicationMapper.toResponse(application);
     }
@@ -109,6 +134,9 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
 
         application.cancel();
         applicationRepository.save(application);
+
+        // Cleanup academic results from S3
+        cleanupAcademicResultsFromS3(application);
 
         log.info("Kuppi Student application {} cancelled by student {}", applicationId, currentUserId);
     }
@@ -234,6 +262,9 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
         application.reject(reviewer, request.getRejectionReason(), request.getReviewNotes());
         applicationRepository.save(application);
 
+        // Cleanup academic results from S3
+        cleanupAcademicResultsFromS3(application);
+
         log.info("Kuppi Student application {} rejected by {} for student {}",
                 applicationId, currentUserId, application.getStudent().getStudentId());
 
@@ -287,6 +318,9 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
         KuppiApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new ResourceNotFoundException("KuppiApplication", "id", applicationId));
 
+        // Cleanup academic results from S3
+        cleanupAcademicResultsFromS3(application);
+
         applicationRepository.delete(application);
 
         log.info("Kuppi Student application {} permanently deleted by super admin {}",
@@ -320,6 +354,44 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
     }
 
     // ==================== Helper Methods ====================
+
+    private void validateAcademicResultsFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("Academic results document is required");
+        }
+
+        // Validate file size
+        if (file.getSize() > MAX_ACADEMIC_RESULTS_SIZE) {
+            throw new BadRequestException("Academic results file size must not exceed 10MB");
+        }
+
+        // Validate content type
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new BadRequestException(
+                    "Invalid file type. Accepted types: PDF, JPG, JPEG, PNG. Received: " + contentType);
+        }
+
+        // Validate file extension as additional security check
+        String extension = FileUtils.getExtension(file);
+        List<String> allowedExtensions = Arrays.asList("pdf", "jpg", "jpeg", "png");
+        if (!allowedExtensions.contains(extension.toLowerCase())) {
+            throw new BadRequestException(
+                    "Invalid file extension. Accepted extensions: pdf, jpg, jpeg, png");
+        }
+    }
+
+    private void cleanupAcademicResultsFromS3(KuppiApplication application) {
+        if (application.getAcademicResultsKey() != null && !application.getAcademicResultsKey().isBlank()) {
+            try {
+                s3Service.deleteFile(application.getAcademicResultsKey());
+                log.info("Deleted academic results from S3: {}", application.getAcademicResultsKey());
+            } catch (Exception e) {
+                log.warn("Failed to delete academic results from S3: {}. Error: {}",
+                        application.getAcademicResultsKey(), e.getMessage());
+            }
+        }
+    }
 
     private KuppiApplication findApplicationById(Long applicationId) {
         return applicationRepository.findById(applicationId)
@@ -365,7 +437,10 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
             if (application.getSubjectsToTeach() != null) {
                 student.setKuppiSubjects(new HashSet<>(application.getSubjectsToTeach()));
             }
-            student.setKuppiExperienceLevel(application.getPreferredExperienceLevel());
+            student.setKuppiExperienceLevel(
+                    application.getPreferredExperienceLevel() != null
+                            ? application.getPreferredExperienceLevel().name()
+                            : null);
             student.setKuppiAvailability(application.getAvailability());
         }
 

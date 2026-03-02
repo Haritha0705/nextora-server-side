@@ -119,8 +119,6 @@ public final class ApiConstants {
     public static final String KUPPI_ADMIN_NOTES_BY_ID = "/notes/{noteId}";
     public static final String KUPPI_ADMIN_NOTES_PERMANENT = "/notes/{noteId}/permanent";
 
-
-
     // Kuppi Notes endpoints
     public static final String KUPPI_NOTE_BY_ID = "/{noteId}";
     public static final String KUPPI_NOTE_SESSION = "/session/{sessionId}";

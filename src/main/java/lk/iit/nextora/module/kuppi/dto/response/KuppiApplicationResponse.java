@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.kuppi.dto.response;
 
+import lk.iit.nextora.common.enums.ExperienceLevel;
 import lk.iit.nextora.common.enums.KuppiApplicationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,10 +37,12 @@ public class KuppiApplicationResponse {
     private String motivation;
     private String relevantExperience;
     private Set<String> subjectsToTeach;
-    private String preferredExperienceLevel;
+    private ExperienceLevel preferredExperienceLevel;
     private String availability;
     private Double currentGpa;
     private String currentSemester;
+    private String academicResultsUrl;
+    private String academicResultsFileName;
 
     // ==================== Review Details ====================
     private Long reviewedById;

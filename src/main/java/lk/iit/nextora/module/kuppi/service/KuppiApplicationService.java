@@ -7,6 +7,7 @@ import lk.iit.nextora.module.kuppi.dto.request.ReviewKuppiApplicationRequest;
 import lk.iit.nextora.module.kuppi.dto.response.KuppiApplicationResponse;
 import lk.iit.nextora.module.kuppi.dto.response.KuppiApplicationStatsResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,10 +20,13 @@ public interface KuppiApplicationService {
     // ==================== Student Operations ====================
 
     /**
-     * Submit a new Kuppi Student application
+     * Submit a new Kuppi Student application with academic results document
      * Only students without active applications can apply
+     *
+     * @param request          application details
+     * @param academicResults  uploaded academic results file (PDF/image)
      */
-    KuppiApplicationResponse submitApplication(KuppiApplicationRequest request);
+    KuppiApplicationResponse submitApplication(KuppiApplicationRequest request, MultipartFile academicResults);
 
     /**
      * Get current user's applications
