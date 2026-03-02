@@ -82,7 +82,7 @@ public interface KuppiSessionService {
      * Soft-delete a session and remove associated note files from storage (best-effort).
      * Only the owner may soft-delete their session.
      */
-    void deleteSession(Long sessionId);
+    void softDeleteSession(Long sessionId);
 
     /**
      * Get own sessions

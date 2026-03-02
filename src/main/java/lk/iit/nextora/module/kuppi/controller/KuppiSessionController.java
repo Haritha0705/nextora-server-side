@@ -234,11 +234,11 @@ public class KuppiSessionController {
     }
 
     @DeleteMapping(ApiConstants.KUPPI_SESSION_BY_ID)
-    @Operation(summary = "Soft delete session and remove files", description = "Soft-delete the session and remove associated note files from storage (owner only)")
+    @Operation(summary = "Soft delete session", description = "Soft-delete the session and remove associated note files from storage (owner only)")
     @PreAuthorize("hasAuthority('KUPPI:DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ApiResponse<Void> deleteSession(@PathVariable Long sessionId) {
-        sessionService.deleteSession(sessionId);
+    public ApiResponse<Void> softDeleteSession(@PathVariable Long sessionId) {
+        sessionService.softDeleteSession(sessionId);
         return ApiResponse.success("Session soft-deleted and files removed successfully");
     }
 

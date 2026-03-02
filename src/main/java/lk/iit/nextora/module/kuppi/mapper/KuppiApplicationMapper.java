@@ -45,6 +45,8 @@ public class KuppiApplicationMapper {
                 .availability(application.getAvailability())
                 .currentGpa(application.getCurrentGpa())
                 .currentSemester(application.getCurrentSemester())
+                .academicResultsUrl(application.getAcademicResultsUrl())
+                .academicResultsFileName(application.getAcademicResultsFileName())
                 .reviewNotes(application.getReviewNotes())
                 .rejectionReason(application.getRejectionReason())
                 .submittedAt(application.getSubmittedAt())

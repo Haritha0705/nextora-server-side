@@ -2,6 +2,7 @@ package lk.iit.nextora.module.kuppi.entity;
 
 import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;
+import lk.iit.nextora.common.enums.ExperienceLevel;
 import lk.iit.nextora.common.enums.KuppiApplicationStatus;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.entity.Student;
@@ -48,8 +49,9 @@ public class KuppiApplication extends BaseEntity {
     @Builder.Default
     private Set<String> subjectsToTeach = new HashSet<>();
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String preferredExperienceLevel;
+    private ExperienceLevel preferredExperienceLevel;
 
     @Column(length = 500)
     private String availability;
@@ -60,6 +62,17 @@ public class KuppiApplication extends BaseEntity {
 
     @Column(length = 50)
     private String currentSemester;
+
+    // ==================== Academic Results (S3) ====================
+
+    @Column(name = "academic_results_url", length = 500)
+    private String academicResultsUrl;
+
+    @Column(name = "academic_results_key", length = 500)
+    private String academicResultsKey;
+
+    @Column(name = "academic_results_file_name", length = 255)
+    private String academicResultsFileName;
 
     // ==================== Review Details ====================
 

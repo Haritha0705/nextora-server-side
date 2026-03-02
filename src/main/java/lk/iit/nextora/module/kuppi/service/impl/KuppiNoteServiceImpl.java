@@ -260,7 +260,7 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
 
     @Override
     @Transactional
-    public void deleteNote(Long noteId) {
+    public void softDeleteNote(Long noteId) {
         Long currentUserId = securityService.getCurrentUserId();
         KuppiNote note = findNoteById(noteId);
 

@@ -62,7 +62,7 @@ public interface KuppiNoteService {
     /**
      * Delete own note (soft delete)
      */
-    void deleteNote(Long noteId);
+    void softDeleteNote(Long noteId);
 
     /**
      * Get own uploaded notes

@@ -394,7 +394,7 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
 
     @Override
     @Transactional
-    public void deleteSession(Long sessionId) {
+    public void softDeleteSession(Long sessionId) {
         Long currentUserId = securityService.getCurrentUserId();
         KuppiSession session = findSessionById(sessionId);
 

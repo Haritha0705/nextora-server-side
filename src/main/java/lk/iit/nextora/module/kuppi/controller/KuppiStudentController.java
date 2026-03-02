@@ -165,28 +165,5 @@ public class KuppiStudentController {
 
         return ApiResponse.success("Kuppi students retrieved successfully", response);
     }
-
-    // ==================== Top Rated Kuppi Students ====================
-
-    @GetMapping(ApiConstants.KUPPI_STUDENTS_TOP_RATED)
-    @Operation(
-            summary = "Get top-rated Kuppi students",
-            description = "Retrieve the highest-rated Kuppi students based on their session ratings."
-    )
-    @PreAuthorize("hasAuthority('KUPPI:READ')")
-    public ApiResponse<PagedResponse<KuppiStudentResponse>> getTopRated(
-            @Parameter(description = "Page number (0-based)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Page size", example = "10")
-            @RequestParam(defaultValue = "10") int size) {
-
-        log.info("REST request to get top-rated Kuppi students");
-
-        Pageable pageable = PageRequest.of(page, size);
-        PagedResponse<KuppiStudentResponse> response = kuppiStudentService.getTopRatedKuppiStudents(pageable);
-
-        return ApiResponse.success("Top-rated Kuppi students retrieved successfully", response);
-    }
 }
 

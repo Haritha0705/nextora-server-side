@@ -55,13 +55,5 @@ public interface KuppiStudentService {
      * @return paginated list of Kuppi students in the faculty
      */
     PagedResponse<KuppiStudentResponse> getKuppiStudentsByFaculty(String faculty, Pageable pageable);
-
-    /**
-     * Get top rated Kuppi students.
-     *
-     * @param pageable pagination parameters
-     * @return paginated list of top-rated Kuppi students
-     */
-    PagedResponse<KuppiStudentResponse> getTopRatedKuppiStudents(Pageable pageable);
 }
 

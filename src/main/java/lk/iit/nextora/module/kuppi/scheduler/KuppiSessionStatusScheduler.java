@@ -45,6 +45,9 @@ public class KuppiSessionStatusScheduler {
         log.debug("Running Kuppi session status update job at {}", now);
 
         try {
+            // 0. Send reminders for sessions starting soon (30 min window)
+            sendSessionReminders(now);
+
             // 1. Transition SCHEDULED → LIVE
             transitionScheduledToLive(now);
 
@@ -56,6 +59,36 @@ public class KuppiSessionStatusScheduler {
 
         } catch (Exception e) {
             log.error("Error during Kuppi session status update job", e);
+        }
+    }
+
+    /**
+     * Send reminder notifications for sessions starting within the next 30 minutes.
+     * Only sends once per session by checking that start time is between 29-30 minutes from now
+     * (1-minute window matching the scheduler frequency).
+     */
+    private void sendSessionReminders(LocalDateTime now) {
+        // Look for sessions starting between 29 and 30 minutes from now
+        // This 1-minute window ensures we only send the reminder once
+        LocalDateTime reminderFrom = now.plusMinutes(29);
+        LocalDateTime reminderTo = now.plusMinutes(30);
+
+        List<KuppiSession> sessionsToRemind = sessionRepository.findSessionsStartingBetween(
+                KuppiSessionStatus.SCHEDULED, reminderFrom, reminderTo);
+
+        if (!sessionsToRemind.isEmpty()) {
+            log.info("Sending reminders for {} sessions starting in ~30 minutes", sessionsToRemind.size());
+
+            for (KuppiSession session : sessionsToRemind) {
+                kuppiNotificationService.notifyKuppiSessionReminder(
+                        session.getId(),
+                        session.getTitle(),
+                        session.getSubject(),
+                        session.getLiveLink(),
+                        30
+                );
+                log.info("Sent reminder for session {} '{}'", session.getId(), session.getTitle());
+            }
         }
     }
 

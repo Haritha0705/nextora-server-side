@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.kuppi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,8 +12,10 @@ import lk.iit.nextora.module.kuppi.dto.response.KuppiApplicationResponse;
 import lk.iit.nextora.module.kuppi.service.KuppiApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -32,18 +35,22 @@ public class KuppiApplicationController {
 
     // ==================== Student Endpoints ====================
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('KUPPI_APPLICATION:SUBMIT')")
     @Operation(
             summary = "Submit Kuppi Student application",
-            description = "Submit an application to become a Kuppi Student. " +
+            description = "Submit an application to become a Kuppi Student with academic results upload. " +
                     "Only students without active applications can apply. " +
-                    "Already approved Kuppi Students cannot apply again."
+                    "Already approved Kuppi Students cannot apply again. " +
+                    "Accepted file types: PDF, JPG, JPEG, PNG (max 5MB)."
     )
     public ApiResponse<KuppiApplicationResponse> submitApplication(
-            @Valid @RequestBody KuppiApplicationRequest request) {
-        KuppiApplicationResponse response = applicationService.submitApplication(request);
+            @Valid @RequestPart("application") KuppiApplicationRequest request,
+            @RequestPart(value = "academicResults")
+            @Schema(type = "string", format = "binary", description = "Academic results document (PDF or image)")
+            MultipartFile academicResults) {
+        KuppiApplicationResponse response = applicationService.submitApplication(request, academicResults);
         return ApiResponse.success("Application submitted successfully", response);
     }
 

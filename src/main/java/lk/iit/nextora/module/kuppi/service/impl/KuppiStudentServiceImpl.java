@@ -91,14 +91,6 @@ public class KuppiStudentServiceImpl implements KuppiStudentService {
         return toPagedResponse(students);
     }
 
-    @Override
-    public PagedResponse<KuppiStudentResponse> getTopRatedKuppiStudents(Pageable pageable) {
-        log.debug("Fetching top-rated Kuppi students");
-
-        Page<Student> students = studentRepository.findTopRatedKuppiStudents(pageable);
-        return toPagedResponse(students);
-    }
-
     // ==================== Private Helper Methods ====================
 
     private PagedResponse<KuppiStudentResponse> toPagedResponse(Page<Student> studentsPage) {

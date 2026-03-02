@@ -21,6 +21,7 @@ public final class ApiConstants {
     public static final String CLUBS = API_V1 + "/club";
     public static final String ELECTIONS = API_V1 + "/club/election";
     public static final String PUSH = API_V1 + "/push";
+    public static final String NOTIFICATIONS = API_V1 + "/notifications";
 
     // Authentication endpoints
 
@@ -117,8 +118,6 @@ public final class ApiConstants {
     public static final String KUPPI_ADMIN_NOTES = KUPPI_ADMIN + "/notes";
     public static final String KUPPI_ADMIN_NOTES_BY_ID = "/notes/{noteId}";
     public static final String KUPPI_ADMIN_NOTES_PERMANENT = "/notes/{noteId}/permanent";
-
-
 
     // Kuppi Notes endpoints
     public static final String KUPPI_NOTE_BY_ID = "/{noteId}";
