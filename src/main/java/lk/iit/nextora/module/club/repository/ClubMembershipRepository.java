@@ -21,6 +21,8 @@ public interface ClubMembershipRepository extends JpaRepository<ClubMembership, 
 
     Optional<ClubMembership> findByClubIdAndMemberIdAndIsDeletedFalse(Long clubId, Long memberId);
 
+    Optional<ClubMembership> findByClubIdAndMemberId(Long clubId, Long memberId);
+
     Optional<ClubMembership> findByMembershipNumberAndIsDeletedFalse(String membershipNumber);
 
     boolean existsByClubIdAndMemberIdAndIsDeletedFalse(Long clubId, Long memberId);
@@ -83,4 +85,21 @@ public interface ClubMembershipRepository extends JpaRepository<ClubMembership, 
                               @Param("memberId") Long memberId,
                               @Param("currentDate") LocalDate currentDate,
                               @Param("eligibilityDate") LocalDate eligibilityDate);
+
+    // Dashboard queries
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.member.id = :memberId AND cm.isDeleted = false")
+    long countByMemberId(@Param("memberId") Long memberId);
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.member.id = :memberId AND cm.status = 'PENDING' AND cm.isDeleted = false")
+    long countPendingByMemberId(@Param("memberId") Long memberId);
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.status = 'PENDING' AND cm.isDeleted = false")
+    long countAllPending();
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.status = 'ACTIVE' AND cm.isDeleted = false " +
+           "AND (cm.expiryDate IS NULL OR cm.expiryDate > :currentDate)")
+    long countAllActiveMembers(@Param("currentDate") LocalDate currentDate);
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.club.id = :clubId AND cm.status = 'PENDING' AND cm.isDeleted = false")
+    long countPendingByClubId(@Param("clubId") Long clubId);
 }

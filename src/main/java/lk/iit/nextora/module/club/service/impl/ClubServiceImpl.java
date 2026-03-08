@@ -286,11 +286,42 @@ public class ClubServiceImpl implements ClubService {
             throw new BadRequestException("Club is not accepting new members");
         }
 
-        // Check if already a member (PENDING or ACTIVE status)
-        Optional<ClubMembership> existingMembership = membershipRepository.findByClubIdAndMemberIdAndIsDeletedFalse(request.getClubId(), currentUserId);
+        // Check for ANY existing membership (including soft-deleted records) to avoid unique constraint violation
+        Optional<ClubMembership> existingMembership = membershipRepository.findByClubIdAndMemberId(request.getClubId(), currentUserId);
 
         if (existingMembership.isPresent()) {
             ClubMembership membership = existingMembership.get();
+
+            // If the record was soft-deleted, reuse it for re-application
+            if (membership.getIsDeleted()) {
+                log.info("User {} has a soft-deleted membership, allowing re-application", currentUserId);
+
+                // Check max members before re-application
+                long currentMembers = membershipRepository.countActiveMembers(request.getClubId(), LocalDate.now());
+                if (currentMembers >= club.getMaxMembers()) {
+                    throw new BadRequestException("Club has reached maximum member capacity");
+                }
+
+                // Reuse the existing record (unique constraint on club_id, member_id)
+                membership.setIsDeleted(false);
+                membership.setIsActive(true);
+                membership.setDeletedAt(null);
+                membership.setDeletedBy(null);
+                membership.setStatus(ClubMembershipStatus.PENDING);
+                membership.setJoinDate(LocalDate.now());
+                membership.setRemarks(request.getRemarks());
+                membership.setPosition(null);
+                membership.setApprovedAt(null);
+                membership.setApprovedBy(null);
+                membership.setExpiryDate(null);
+
+                membership = membershipRepository.save(membership);
+                log.info("Membership re-application submitted (reactivated): {}", membership.getMembershipNumber());
+
+                return clubMapper.toResponse(membership);
+            }
+
+            // Record is not deleted — check its status
             ClubMembershipStatus status = membership.getStatus();
 
             if (status == ClubMembershipStatus.PENDING) {
@@ -302,15 +333,33 @@ public class ClubServiceImpl implements ClubService {
             if (status == ClubMembershipStatus.SUSPENDED) {
                 throw new BadRequestException("Your membership is suspended. Please contact the club administrator");
             }
-            // If status is REVOKED or EXPIRED, allow re-application by soft-deleting old record
+            // If status is REVOKED or EXPIRED, allow re-application by reusing the existing record
             if (status == ClubMembershipStatus.REVOKED || status == ClubMembershipStatus.EXPIRED) {
                 log.info("User {} has a {} membership, allowing re-application", currentUserId, status);
-                membership.softDelete();
-                membershipRepository.save(membership);
+
+                // Check max members before re-application
+                long currentMembers = membershipRepository.countActiveMembers(request.getClubId(), LocalDate.now());
+                if (currentMembers >= club.getMaxMembers()) {
+                    throw new BadRequestException("Club has reached maximum member capacity");
+                }
+
+                // Reuse the existing record (unique constraint on club_id, member_id)
+                membership.setStatus(ClubMembershipStatus.PENDING);
+                membership.setJoinDate(LocalDate.now());
+                membership.setRemarks(request.getRemarks());
+                membership.setPosition(null);
+                membership.setApprovedAt(null);
+                membership.setApprovedBy(null);
+                membership.setExpiryDate(null);
+
+                membership = membershipRepository.save(membership);
+                log.info("Membership re-application submitted: {}", membership.getMembershipNumber());
+
+                return clubMapper.toResponse(membership);
             }
         }
 
-        // Check max members
+        // No existing membership at all — create a new one
         long currentMembers = membershipRepository.countActiveMembers(request.getClubId(), LocalDate.now());
         if (currentMembers >= club.getMaxMembers()) {
             throw new BadRequestException("Club has reached maximum member capacity");
@@ -324,6 +373,7 @@ public class ClubServiceImpl implements ClubService {
                 .membershipNumber(ClubMembership.generateMembershipNumber(club.getClubCode(), currentUserId))
                 .status(ClubMembershipStatus.PENDING)
                 .joinDate(LocalDate.now())
+                .remarks(request.getRemarks())
                 .build();
 
         membership = membershipRepository.save(membership);

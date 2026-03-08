@@ -2,6 +2,7 @@ package lk.iit.nextora.module.club.service.impl;
 
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.ClubMembershipStatus;
+import lk.iit.nextora.common.enums.ClubPositionsType;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
@@ -217,12 +218,24 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
         var membership = membershipRepository.findByClubIdAndMemberIdAndIsDeletedFalse(club.getId(), currentUserId);
         if (membership.isPresent() && membership.get().getStatus() == ClubMembershipStatus.ACTIVE) {
             var position = membership.get().getPosition();
-            if (position != null && position != lk.iit.nextora.common.enums.ClubPositionsType.GENERAL_MEMBER) {
+            if (position != null && isAnnouncementOfficer(position)) {
                 return;
             }
         }
 
         throw new UnauthorizedException("You don't have permission to manage announcements for this club");
+    }
+
+    /**
+     * Check if the position is allowed to manage announcements.
+     * Only PRESIDENT, VICE_PRESIDENT, SECRETARY, TREASURER, and Top_Board_MEMBER can manage announcements.
+     */
+    private boolean isAnnouncementOfficer(ClubPositionsType position) {
+        return position == ClubPositionsType.PRESIDENT ||
+               position == ClubPositionsType.VICE_PRESIDENT ||
+               position == ClubPositionsType.SECRETARY ||
+               position == ClubPositionsType.TREASURER ||
+               position == ClubPositionsType.Top_Board_MEMBER;
     }
 
     private void validateAttachment(MultipartFile file) {

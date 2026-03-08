@@ -46,4 +46,13 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
 
     @Query("SELECT c FROM Club c WHERE c.isRegistrationOpen = true AND c.isDeleted = false AND c.isActive = true")
     Page<Club> findOpenForRegistration(Pageable pageable);
+
+    @Query("SELECT COUNT(c) FROM Club c WHERE c.isRegistrationOpen = true AND c.isDeleted = false AND c.isActive = true")
+    long countOpenForRegistration();
+
+    @Query("SELECT c FROM Club c WHERE c.isDeleted = false AND c.isActive = true ORDER BY c.createdAt DESC")
+    List<Club> findRecentClubs(Pageable pageable);
+
+    @Query("SELECT c FROM Club c WHERE c.advisor.id = :advisorId AND c.isDeleted = false AND c.isActive = true")
+    List<Club> findByAdvisorId(@Param("advisorId") Long advisorId);
 }

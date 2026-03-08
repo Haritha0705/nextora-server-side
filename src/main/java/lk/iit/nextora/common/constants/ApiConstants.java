@@ -191,6 +191,14 @@ public final class ApiConstants {
     public static final String CLUB_ELECTIONS_UPCOMING = "/{clubId}/elections/upcoming";
     public static final String CLUB_ELECTIONS_COMPLETED = "/{clubId}/elections/completed";
 
+    // ==================== Club Dashboard Endpoints ====================
+    public static final String CLUB_DASHBOARD = API_V1 + "/club/dashboard";
+    public static final String CLUB_DASHBOARD_STUDENT = "/student";
+    public static final String CLUB_DASHBOARD_CLUB_MEMBER = "/club-member";
+    public static final String CLUB_DASHBOARD_STAFF = "/staff";
+    public static final String CLUB_DASHBOARD_ADMIN = "/admin";
+    public static final String CLUB_DASHBOARD_ACADEMIC = "/academic";
+
 
     // ==================== Club Announcements Endpoints ====================
     public static final String CLUB_ANNOUNCEMENTS = API_V1 + "/club/announcements";
