@@ -50,7 +50,8 @@ public enum StudentRoleType {
                     Permission.CLUB_MEMBERSHIP_VIEW,
                     Permission.CLUB_UPDATE,
 
-                    Permission.ELECTION_READ
+                    Permission.ELECTION_READ,
+                    Permission.EVENT_CREATE
             )),
 
     // ==================== SENIOR KUPPI ====================
