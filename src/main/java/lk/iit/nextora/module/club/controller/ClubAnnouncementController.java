@@ -6,6 +6,7 @@ import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.module.club.dto.request.CreateAnnouncementRequest;
+import lk.iit.nextora.module.club.dto.request.UpdateAnnouncementRequest;
 import lk.iit.nextora.module.club.dto.response.ClubAnnouncementResponse;
 import lk.iit.nextora.module.club.entity.ClubAnnouncement;
 import lk.iit.nextora.module.club.service.ClubAnnouncementService;
@@ -68,7 +69,7 @@ public class ClubAnnouncementController {
             @RequestParam(value = "isMembersOnly", required = false) Boolean isMembersOnly,
             @RequestPart(value = "attachment", required = false) MultipartFile attachment) {
 
-        CreateAnnouncementRequest request = CreateAnnouncementRequest.builder()
+        UpdateAnnouncementRequest request = UpdateAnnouncementRequest.builder()
                 .title(title)
                 .content(content)
                 .priority(priority != null ? ClubAnnouncement.AnnouncementPriority.valueOf(priority) : null)

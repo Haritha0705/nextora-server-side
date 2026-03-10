@@ -28,17 +28,15 @@ public interface ClubMapper {
     @Mapping(target = "deletedAt", ignore = true)
     Club toEntity(CreateClubRequest request);
 
-    @Mapping(target = "presidentId", source = "president.id")
-    @Mapping(target = "presidentName", expression = "java(club.getPresident() != null ? club.getPresident().getFullName() : null)")
-    @Mapping(target = "presidentEmail", source = "president.email")
-    @Mapping(target = "advisorId", source = "advisor.id")
-    @Mapping(target = "advisorName", expression = "java(club.getAdvisor() != null ? club.getAdvisor().getFullName() : null)")
-    @Mapping(target = "advisorEmail", source = "advisor.email")
-    @Mapping(target = "advisorDepartment", source = "advisor.department")
+    @Mapping(target = "president", ignore = true)
+    @Mapping(target = "advisor", ignore = true)
     @Mapping(target = "totalMembers", ignore = true)
     @Mapping(target = "activeMembers", ignore = true)
     @Mapping(target = "totalElections", ignore = true)
     @Mapping(target = "activeElections", ignore = true)
+    @Mapping(target = "vicePresident", ignore = true)
+    @Mapping(target = "secretary", ignore = true)
+    @Mapping(target = "treasurer", ignore = true)
     ClubResponse toResponse(Club club);
 
     List<ClubResponse> toClubResponseList(List<Club> clubs);
@@ -51,6 +49,7 @@ public interface ClubMapper {
     @Mapping(target = "memberId", source = "member.id")
     @Mapping(target = "memberName", expression = "java(membership.getMember().getFullName())")
     @Mapping(target = "memberEmail", source = "member.email")
+    @Mapping(target = "memberProfilePictureUrl", source = "member.profilePictureUrl")
     @Mapping(target = "memberStudentId", source = "member.studentId")
     @Mapping(target = "memberBatch", source = "member.batch")
     @Mapping(target = "approvedById", source = "approvedBy.id")

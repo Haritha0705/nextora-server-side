@@ -22,7 +22,13 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
 
     Optional<Club> findByClubCodeAndIsDeletedFalse(String clubCode);
 
+    @Query("SELECT c FROM Club c LEFT JOIN FETCH c.president LEFT JOIN FETCH c.advisor WHERE c.clubCode = :clubCode AND c.isDeleted = false")
+    Optional<Club> findByClubCodeWithOfficers(@Param("clubCode") String clubCode);
+
     Optional<Club> findByIdAndIsDeletedFalse(Long id);
+
+    @Query("SELECT c FROM Club c LEFT JOIN FETCH c.president LEFT JOIN FETCH c.advisor WHERE c.id = :id AND c.isDeleted = false")
+    Optional<Club> findByIdWithOfficers(@Param("id") Long id);
 
     boolean existsByClubCodeAndIsDeletedFalse(String clubCode);
 

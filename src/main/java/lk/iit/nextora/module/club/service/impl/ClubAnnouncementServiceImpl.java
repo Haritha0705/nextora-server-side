@@ -10,6 +10,7 @@ import lk.iit.nextora.config.security.SecurityService;
 import lk.iit.nextora.module.auth.entity.Student;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
 import lk.iit.nextora.module.club.dto.request.CreateAnnouncementRequest;
+import lk.iit.nextora.module.club.dto.request.UpdateAnnouncementRequest;
 import lk.iit.nextora.module.club.dto.response.ClubAnnouncementResponse;
 import lk.iit.nextora.module.club.entity.Club;
 import lk.iit.nextora.module.club.entity.ClubActivityLog;
@@ -86,7 +87,7 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
 
     @Override
     @Transactional
-    public ClubAnnouncementResponse updateAnnouncement(Long announcementId, CreateAnnouncementRequest request, MultipartFile attachment) {
+    public ClubAnnouncementResponse updateAnnouncement(Long announcementId, UpdateAnnouncementRequest request, MultipartFile attachment) {
         ClubAnnouncement announcement = findAnnouncementById(announcementId);
         validateClubOfficerAccess(announcement.getClub());
 
@@ -105,6 +106,13 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
         }
 
         announcement = announcementRepository.save(announcement);
+
+        Long currentUserId = securityService.getCurrentUserId();
+        activityLogService.log(announcement.getClub(), ClubActivityLog.ActivityType.ANNOUNCEMENT_UPDATED,
+                "Announcement updated: " + announcement.getTitle(),
+                currentUserId, securityService.getCurrentUserEmail(),
+                null, null, announcement.getId(), "ClubAnnouncement", null);
+
         log.info("Announcement updated: {}", announcementId);
         return clubMapper.toResponse(announcement);
     }
