@@ -75,7 +75,7 @@ public class LostAndFoundController {
     // ✅ FIX: added @Operation — every endpoint must document itself like Kuppi
     @Operation(summary = "Report lost item", description = "Report a new lost item")
     // ✅ FIX: added matching authority guard like the Kuppi module uses on every endpoint
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:CREATE')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:CREATE')")
     // ✅ FIX: added @ResponseStatus — POST must return 201 Created, not default 200
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ItemResponse> createLostItem(
@@ -91,7 +91,7 @@ public class LostAndFoundController {
      */
     @PutMapping("/lost/{id}")
     @Operation(summary = "Update lost item", description = "Update a lost item by ID")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:UPDATE')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:UPDATE')")
     public ApiResponse<ItemResponse> updateLostItem(
             @PathVariable Long id,
             @Valid @RequestBody UpdateItemRequest request) {
@@ -106,7 +106,7 @@ public class LostAndFoundController {
      */
     @GetMapping("/lost")
     @Operation(summary = "Search lost items", description = "Search lost items with keyword and category filters")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:READ')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:READ')")
     public ApiResponse<ItemListResponse> searchLostItems(
             // @ModelAttribute binds query params directly to the SearchItemRequest object
             @Valid @ModelAttribute SearchItemRequest request) {
@@ -121,7 +121,7 @@ public class LostAndFoundController {
      */
     @GetMapping("/lost/search")
     @Operation(summary = "Search lost items (pageable)", description = "Search lost items with full pagination and sorting support")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:READ')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:READ')")
     public ApiResponse<PagedResponse<ItemResponse>> searchLostItemsPageable(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
@@ -149,7 +149,7 @@ public class LostAndFoundController {
      */
     @PostMapping("/found")
     @Operation(summary = "Report found item", description = "Report a new found item")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:CREATE')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:CREATE')")
     // ✅ FIX: added @ResponseStatus — POST must return 201 Created
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ItemResponse> createFoundItem(
@@ -164,7 +164,7 @@ public class LostAndFoundController {
      */
     @PutMapping("/found/{id}")
     @Operation(summary = "Update found item", description = "Update a found item by ID")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:UPDATE')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:UPDATE')")
     public ApiResponse<ItemResponse> updateFoundItem(
             @PathVariable Long id,
             @Valid @RequestBody UpdateItemRequest request) {
@@ -178,7 +178,7 @@ public class LostAndFoundController {
      */
     @GetMapping("/found")
     @Operation(summary = "Search found items", description = "Search found items with keyword and category filters")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:READ')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:READ')")
     public ApiResponse<ItemListResponse> searchFoundItems(
             @Valid @ModelAttribute SearchItemRequest request) {
         ItemListResponse response = foundItemService.searchFoundItems(request);
@@ -191,7 +191,7 @@ public class LostAndFoundController {
      */
     @GetMapping("/found/search")
     @Operation(summary = "Search found items (pageable)", description = "Search found items with full pagination and sorting support")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:READ')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:READ')")
     public ApiResponse<PagedResponse<ItemResponse>> searchFoundItemsPageable(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,

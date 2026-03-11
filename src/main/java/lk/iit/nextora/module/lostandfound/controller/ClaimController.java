@@ -55,7 +55,7 @@ public class ClaimController {
     @PostMapping
     // ✅ FIX: @Operation was completely missing
     @Operation(summary = "Submit a claim", description = "Submit a claim that a found item belongs to you")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:CLAIM')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:CLAIM')")
     // ✅ FIX: POST must return 201 Created, not 200 OK
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ClaimResponse> createClaim(
@@ -72,7 +72,7 @@ public class ClaimController {
     @GetMapping("/{id}")
     // ✅ FIX: @Operation was missing
     @Operation(summary = "Get claim by ID", description = "Retrieve a specific claim by its ID")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:READ')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:READ')")
     public ApiResponse<ClaimResponse> getClaim(
             @PathVariable Long id) {
         ClaimResponse response = claimService.getClaimById(id);
@@ -86,7 +86,7 @@ public class ClaimController {
      */
     @GetMapping("/my")
     @Operation(summary = "Get my claims", description = "Get all claims submitted by the current student")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:READ')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:READ')")
     public ApiResponse<PagedResponse<ClaimResponse>> getMyClaims(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -103,7 +103,7 @@ public class ClaimController {
      */
     @GetMapping("/status/{status}")
     @Operation(summary = "Get claims by status", description = "Get all claims filtered by status (admin)")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:ADMIN_VIEW')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:ADMIN_VIEW')")
     public ApiResponse<PagedResponse<ClaimResponse>> getClaimsByStatus(
             @PathVariable String status,
             @RequestParam(defaultValue = "0") int page,
@@ -119,7 +119,7 @@ public class ClaimController {
      */
     @PutMapping("/{id}/approve")
     @Operation(summary = "Approve claim", description = "Approve a pending claim (admin)")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:ADMIN_UPDATE')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:ADMIN_UPDATE')")
     public ApiResponse<ClaimResponse> approveClaim(@PathVariable Long id) {
         ClaimResponse response = claimService.approveClaim(id);
         return ApiResponse.success("Claim approved successfully", response);
@@ -131,7 +131,7 @@ public class ClaimController {
      */
     @PutMapping("/{id}/reject")
     @Operation(summary = "Reject claim", description = "Reject a pending claim (admin)")
-    @PreAuthorize("hasAuthority('LOST_AND_FOUND:ADMIN_UPDATE')")
+    @PreAuthorize("hasAuthority('LOST_FOUND:ADMIN_UPDATE')")
     public ApiResponse<ClaimResponse> rejectClaim(
             @PathVariable Long id,
             // Optional reason for rejection shown to the student
