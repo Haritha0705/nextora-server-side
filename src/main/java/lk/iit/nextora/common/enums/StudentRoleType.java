@@ -71,6 +71,7 @@ public enum StudentRoleType {
                     Permission.CLUB_ANNOUNCEMENT_CREATE,
                     Permission.CLUB_ANNOUNCEMENT_READ,
                     Permission.CLUB_ANNOUNCEMENT_UPDATE,
+                    Permission.CLUB_ANNOUNCEMENT_DELETE,
 
                     // Club stats & activity
                     Permission.CLUB_VIEW_STATS,

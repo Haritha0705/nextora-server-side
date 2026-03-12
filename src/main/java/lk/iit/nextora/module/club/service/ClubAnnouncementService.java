@@ -2,8 +2,8 @@ package lk.iit.nextora.module.club.service;
 
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.module.club.dto.request.CreateAnnouncementRequest;
+import lk.iit.nextora.module.club.dto.request.UpdateAnnouncementRequest;
 import lk.iit.nextora.module.club.dto.response.ClubAnnouncementResponse;
-import lk.iit.nextora.module.club.entity.ClubAnnouncement;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +15,7 @@ public interface ClubAnnouncementService {
 
     ClubAnnouncementResponse createAnnouncement(CreateAnnouncementRequest request, MultipartFile attachment);
 
-    ClubAnnouncementResponse updateAnnouncement(Long announcementId, CreateAnnouncementRequest request, MultipartFile attachment);
+    ClubAnnouncementResponse updateAnnouncement(Long announcementId, UpdateAnnouncementRequest request, MultipartFile attachment);
 
     ClubAnnouncementResponse getAnnouncementById(Long announcementId);
 
@@ -32,5 +32,11 @@ public interface ClubAnnouncementService {
     ClubAnnouncementResponse pinAnnouncement(Long announcementId);
 
     ClubAnnouncementResponse unpinAnnouncement(Long announcementId);
+
+    /**
+     * Permanently delete an announcement from the database and remove associated S3 files.
+     * Super Admin only — this action is irreversible.
+     */
+    void permanentlyDeleteAnnouncement(Long announcementId);
 }
 

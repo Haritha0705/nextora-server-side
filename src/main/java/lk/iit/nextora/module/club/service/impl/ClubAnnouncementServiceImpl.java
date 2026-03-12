@@ -2,6 +2,7 @@ package lk.iit.nextora.module.club.service.impl;
 
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.ClubMembershipStatus;
+import lk.iit.nextora.common.enums.ClubPositionsType;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
@@ -9,6 +10,7 @@ import lk.iit.nextora.config.security.SecurityService;
 import lk.iit.nextora.module.auth.entity.Student;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
 import lk.iit.nextora.module.club.dto.request.CreateAnnouncementRequest;
+import lk.iit.nextora.module.club.dto.request.UpdateAnnouncementRequest;
 import lk.iit.nextora.module.club.dto.response.ClubAnnouncementResponse;
 import lk.iit.nextora.module.club.entity.Club;
 import lk.iit.nextora.module.club.entity.ClubActivityLog;
@@ -85,7 +87,7 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
 
     @Override
     @Transactional
-    public ClubAnnouncementResponse updateAnnouncement(Long announcementId, CreateAnnouncementRequest request, MultipartFile attachment) {
+    public ClubAnnouncementResponse updateAnnouncement(Long announcementId, UpdateAnnouncementRequest request, MultipartFile attachment) {
         ClubAnnouncement announcement = findAnnouncementById(announcementId);
         validateClubOfficerAccess(announcement.getClub());
 
@@ -104,6 +106,13 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
         }
 
         announcement = announcementRepository.save(announcement);
+
+        Long currentUserId = securityService.getCurrentUserId();
+        activityLogService.log(announcement.getClub(), ClubActivityLog.ActivityType.ANNOUNCEMENT_UPDATED,
+                "Announcement updated: " + announcement.getTitle(),
+                currentUserId, securityService.getCurrentUserEmail(),
+                null, null, announcement.getId(), "ClubAnnouncement", null);
+
         log.info("Announcement updated: {}", announcementId);
         return clubMapper.toResponse(announcement);
     }
@@ -186,6 +195,23 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
         return clubMapper.toResponse(announcement);
     }
 
+    @Override
+    @Transactional
+    public void permanentlyDeleteAnnouncement(Long announcementId) {
+        log.info("Super Admin permanently deleting announcement: {}", announcementId);
+
+        ClubAnnouncement announcement = announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new ResourceNotFoundException("ClubAnnouncement", "id", announcementId));
+
+        // Remove attachment from S3 if exists
+        deleteS3File(announcement.getAttachmentUrl());
+
+        // Permanently delete from database
+        announcementRepository.delete(announcement);
+
+        log.info("Super Admin permanently deleted announcement: {} (title: {})", announcementId, announcement.getTitle());
+    }
+
     // ==================== Helpers ====================
 
     private Club findClubById(Long clubId) {
@@ -217,12 +243,24 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
         var membership = membershipRepository.findByClubIdAndMemberIdAndIsDeletedFalse(club.getId(), currentUserId);
         if (membership.isPresent() && membership.get().getStatus() == ClubMembershipStatus.ACTIVE) {
             var position = membership.get().getPosition();
-            if (position != null && position != lk.iit.nextora.common.enums.ClubPositionsType.GENERAL_MEMBER) {
+            if (position != null && isAnnouncementOfficer(position)) {
                 return;
             }
         }
 
         throw new UnauthorizedException("You don't have permission to manage announcements for this club");
+    }
+
+    /**
+     * Check if the position is allowed to manage announcements.
+     * Only PRESIDENT, VICE_PRESIDENT, SECRETARY, TREASURER, and Top_Board_MEMBER can manage announcements.
+     */
+    private boolean isAnnouncementOfficer(ClubPositionsType position) {
+        return position == ClubPositionsType.PRESIDENT ||
+               position == ClubPositionsType.VICE_PRESIDENT ||
+               position == ClubPositionsType.SECRETARY ||
+               position == ClubPositionsType.TREASURER ||
+               position == ClubPositionsType.Top_Board_MEMBER;
     }
 
     private void validateAttachment(MultipartFile file) {

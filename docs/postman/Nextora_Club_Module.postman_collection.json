@@ -721,7 +721,90 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "06. Club Dashboards (Role-Based)",
+			"description": "Pre-aggregated dashboard endpoints for each user role. One API call per dashboard.",
+			"item": [
+				{
+					"name": "Student Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/club/dashboard/student",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "club", "dashboard", "student"]
+						},
+						"description": "Student dashboard: browseable clubs, open registrations, my memberships, public announcements.\n\n**Permission:** CLUB:READ\n**Role:** ROLE_STUDENT"
+					}
+				},
+				{
+					"name": "Club Member Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/club/dashboard/club-member?clubId={{clubId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "club", "dashboard", "club-member"],
+							"query": [
+								{ "key": "clubId", "value": "{{clubId}}" }
+							]
+						},
+						"description": "Club member dashboard: club detail, my position, announcements, elections, activity log, permission flags.\n\n**Permission:** CLUB:READ\n**Role:** ROLE_STUDENT + CLUB_MEMBER sub-role"
+					}
+				},
+				{
+					"name": "Non-Academic Staff Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/club/dashboard/staff",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "club", "dashboard", "staff"]
+						},
+						"description": "Staff dashboard: platform-wide clubs overview, total members, pending requests, active elections, recent activity.\n\n**Permission:** CLUB:VIEW_STATS\n**Role:** ROLE_NON_ACADEMIC_STAFF"
+					}
+				},
+				{
+					"name": "Admin Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/club/dashboard/admin",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "club", "dashboard", "admin"]
+						},
+						"description": "Admin dashboard: full platform analytics, election stats (completed, cancelled), growth metrics.\n\n**Permission:** CLUB:VIEW_STATS\n**Role:** ROLE_ADMIN, ROLE_SUPER_ADMIN"
+					}
+				},
+				{
+					"name": "Academic Staff Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/club/dashboard/academic",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "club", "dashboard", "academic"]
+						},
+						"description": "Academic staff dashboard: read-only clubs overview + clubs they advise.\n\n**Permission:** CLUB:READ\n**Role:** ROLE_ACADEMIC_STAFF"
+					}
+				}
+			]
 		}
 	]
 }
-
