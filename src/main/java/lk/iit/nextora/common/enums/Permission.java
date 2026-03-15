@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Permission {
+
     // ==================== USER MANAGEMENT ====================
     USER_CREATE("USER:CREATE", "Create new users", "USER", "CREATE", PermissionCategory.USER_MANAGEMENT),
     USER_READ("USER:READ", "View user profiles", "USER", "READ", PermissionCategory.USER_MANAGEMENT),
@@ -130,7 +131,17 @@ public enum Permission {
     // ==================== PUSH NOTIFICATIONS ====================
     PUSH_SEND("PUSH:SEND", "Send push notifications", "PUSH", "SEND", PermissionCategory.PUSH_NOTIFICATION),
     PUSH_SEND_BROADCAST("PUSH:SEND_BROADCAST", "Send broadcast push notifications to all users", "PUSH", "SEND_BROADCAST", PermissionCategory.PUSH_NOTIFICATION),
-    PUSH_MANAGE("PUSH:MANAGE", "Manage push notification settings and tokens", "PUSH", "MANAGE", PermissionCategory.PUSH_NOTIFICATION);
+    PUSH_MANAGE("PUSH:MANAGE", "Manage push notification settings and tokens", "PUSH", "MANAGE", PermissionCategory.PUSH_NOTIFICATION),
+
+    // ==================== BOARDING HOUSE ====================
+    BOARDING_HOUSE_CREATE("BOARDING_HOUSE:CREATE", "Create boarding house listings", "BOARDING_HOUSE", "CREATE", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_READ("BOARDING_HOUSE:READ", "View boarding house listings", "BOARDING_HOUSE", "READ", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_UPDATE("BOARDING_HOUSE:UPDATE", "Update own boarding house listings", "BOARDING_HOUSE", "UPDATE", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_DELETE("BOARDING_HOUSE:DELETE", "Delete own boarding house listings", "BOARDING_HOUSE", "DELETE", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_ADMIN_READ("BOARDING_HOUSE:ADMIN_READ", "Admin view all listings", "BOARDING_HOUSE", "ADMIN_READ", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_ADMIN_UPDATE("BOARDING_HOUSE:ADMIN_UPDATE", "Admin update any listing", "BOARDING_HOUSE", "ADMIN_UPDATE", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_ADMIN_DELETE("BOARDING_HOUSE:ADMIN_DELETE", "Admin delete any listing", "BOARDING_HOUSE", "ADMIN_DELETE", PermissionCategory.BOARDING_HOUSE),
+    BOARDING_HOUSE_PERMANENT_DELETE("BOARDING_HOUSE:PERMANENT_DELETE", "Permanently delete listings", "BOARDING_HOUSE", "PERMANENT_DELETE", PermissionCategory.BOARDING_HOUSE);
 
     private final String permission;
     private final String description;
@@ -151,13 +162,13 @@ public enum Permission {
         COMMUNICATION("Communication"),
         LOST_AND_FOUND("Lost and Found"),
         VOTING_MANAGEMENT("Voting Management"),
-        PUSH_NOTIFICATION("Push Notification");
+        PUSH_NOTIFICATION("Push Notification"),
+        BOARDING_HOUSE("Boarding House");
 
         private final String displayName;
 
         PermissionCategory(String displayName) {
             this.displayName = displayName;
         }
-
     }
 }
