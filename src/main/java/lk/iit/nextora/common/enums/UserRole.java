@@ -43,9 +43,10 @@ public enum UserRole {
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
                     Permission.CLUB_MEMBERSHIP_VIEW,
-                    Permission.USER_RESET_PASSWORD
+                    Permission.USER_RESET_PASSWORD,
+                    // Boarding House - students can browse listings
+                    Permission.BOARDING_HOUSE_READ
             )),
-
 
     // ==================== NON_ACADEMIC_STAFF ====================
     ROLE_NON_ACADEMIC_STAFF("Non_Academic_Staff", "Non-academic staff access to system functions", true,
@@ -132,6 +133,8 @@ public enum UserRole {
         adminPermissions.remove(Permission.USER_PERMANENT_DELETE);
         adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
         adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
+        // Boarding House permanent delete is Super Admin only
+        adminPermissions.remove(Permission.BOARDING_HOUSE_PERMANENT_DELETE);
         return adminPermissions;
     }
 
