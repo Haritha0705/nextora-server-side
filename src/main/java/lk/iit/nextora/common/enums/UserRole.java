@@ -84,7 +84,10 @@ public enum UserRole {
                     Permission.VOTE_VIEW_STATISTICS,
                     Permission.ELECTION_PUBLISH_RESULTS,
                     Permission.CANDIDATE_APPROVE,
-                    Permission.CANDIDATE_VIEW
+                    Permission.CANDIDATE_VIEW,
+                    Permission.EVENT_CREATE,
+                    Permission.EVENT_READ,
+                    Permission.EVENT_UPDATE
             )),
 
     // ==================== ACADEMIC_STAFF ====================
@@ -98,6 +101,7 @@ public enum UserRole {
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
                     Permission.CLUB_READ
+
             ));
 
     private final String displayName;
