@@ -1,43 +1,56 @@
 package lk.iit.nextora.module.boardinghouse.dto.response;
 
+import lk.iit.nextora.common.enums.GenderPreference;
 import lombok.*;
 
-@Getter
-@Setter
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Set;
+
+/**
+ * Response DTO for Boarding House listing details.
+ */
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class BoardingHouseResponse {
 
     private Long id;
-
     private String title;
-
     private String description;
+    private BigDecimal price;
+    private String formattedPrice; // e.g., "Rs. 15,000/month"
 
-    private Double price;
-
-    private String city;
-
+    // Location
     private String address;
+    private String city;
+    private String district;
 
-    private String gender;
+    // Preferences
+    private GenderPreference genderPreference;
+    private String genderPreferenceDisplay;
 
-    private String contactNumber1;
+    // Room info
+    private Integer totalRooms;
+    private Integer availableRooms;
+    private Boolean isAvailable;
 
-    private String contactNumber2;
+    // Contact info
+    private String contactName;
+    private String contactPhone;
+    private String contactEmail;
 
-    private Boolean keyMoneyRequired;
+    // Additional info
+    private Set<String> amenities;
+    private String imageUrl;
+    private Long viewCount;
 
-    private Boolean waterBillIncluded;
+    // Posted by (Admin details)
+    private Long postedById;
+    private String postedByName;
 
-    private Boolean electricityBillIncluded;
-
-    private Boolean foodIncluded;
-
-    private Boolean furnitureIncluded;
-
-    private Double latitude;
-
-    private Double longitude;
+    // Metadata
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
