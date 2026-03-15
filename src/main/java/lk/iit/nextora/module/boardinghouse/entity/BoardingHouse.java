@@ -2,10 +2,20 @@ package lk.iit.nextora.module.boardinghouse.entity;
 
 import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;
-import lk.iit.nextora.common.enums.Gender;
+import lk.iit.nextora.common.enums.GenderPreference;
+import lk.iit.nextora.module.auth.entity.BaseUser;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Entity representing a Boarding House listing.
+ * Admin/Super Admin can create and manage listings.
+ * Students can browse and filter listings.
+ */
 @Entity
 @Table(name = "boarding_houses")
 @Getter
@@ -21,41 +31,64 @@ public class BoardingHouse extends BaseEntity {
     @Column(length = 2000)
     private String description;
 
-    @Column(nullable = false)
-    private Double price;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price; // Monthly rent
+
+    @Column(nullable = false, length = 300)
+    private String address;
 
     @Column(nullable = false, length = 100)
     private String city;
 
-    @Column(nullable = false, length = 500)
-    private String address;
+    @Column(nullable = false, length = 100)
+    private String district;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Gender gender;
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private GenderPreference genderPreference = GenderPreference.ANY;
+
+    @Column
+    private Integer totalRooms;
+
+    @Column
+    @Builder.Default
+    private Integer availableRooms = 0;
+
+    @Column(nullable = false, length = 100)
+    private String contactName;
 
     @Column(nullable = false, length = 20)
-    private String contactNumber1;
+    private String contactPhone;
 
-    @Column(length = 20)
-    private String contactNumber2;
+    @Column(length = 100)
+    private String contactEmail;
+
+    // Amenities: WiFi, Parking, AC, Meals, etc.
+    @ElementCollection
+    @CollectionTable(name = "boarding_house_amenities",
+            joinColumns = @JoinColumn(name = "boarding_house_id"))
+    @Column(name = "amenity")
+    @Builder.Default
+    private Set<String> amenities = new HashSet<>();
+
+    // Image URLs stored as JSON-like comma-separated or just first image
+    @Column(length = 1000)
+    private String imageUrl;
 
     @Column(nullable = false)
-    private Boolean keyMoneyRequired;
+    @Builder.Default
+    private Boolean isAvailable = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "posted_by", nullable = false)
+    private BaseUser postedBy;
 
     @Column(nullable = false)
-    private Boolean waterBillIncluded;
+    @Builder.Default
+    private Long viewCount = 0L;
 
-    @Column(nullable = false)
-    private Boolean electricityBillIncluded;
-
-    @Column(nullable = false)
-    private Boolean foodIncluded;
-
-    @Column(nullable = false)
-    private Boolean furnitureIncluded;
-
-    private Double latitude;
-
-    private Double longitude;
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
 }
