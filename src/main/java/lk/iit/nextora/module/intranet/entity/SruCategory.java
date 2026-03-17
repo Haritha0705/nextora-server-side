@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Entity representing a Students Relations Unit (SRU) category.
  * Can be a root category or a subcategory with associated videos.
+ * Contains a bidirectional one-to-many relationship with {@link SruVideo}.
  */
 @Entity
 @Table(name = "intranet_sru_categories", uniqueConstraints = {
@@ -23,17 +24,17 @@ import java.util.List;
 @AllArgsConstructor
 public class SruCategory extends BaseEntity {
 
-    @Column(name = "unit_name", length = 300)
-    private String unitName;
+    @Column(name = "category_slug", nullable = false, unique = true, length = 200)
+    private String categorySlug;
 
     @Column(name = "category_name", nullable = false, length = 200)
     private String categoryName;
 
-    @Column(name = "category_slug", nullable = false, unique = true, length = 200)
-    private String categorySlug;
-
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "unit_name", length = 300)
+    private String unitName;
 
     @Column(name = "location", length = 500)
     private String location;
@@ -48,6 +49,7 @@ public class SruCategory extends BaseEntity {
     private String officeHours;
 
     @OneToMany(mappedBy = "sruCategory", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("id ASC")
     @Builder.Default
     private List<SruVideo> videos = new ArrayList<>();
 
@@ -63,8 +65,8 @@ public class SruCategory extends BaseEntity {
      * Add a video to this category
      */
     public void addVideo(SruVideo video) {
+        videos.add(video);
         video.setSruCategory(this);
-        this.videos.add(video);
     }
 }
 
