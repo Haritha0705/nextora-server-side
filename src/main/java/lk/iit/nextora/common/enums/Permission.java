@@ -124,7 +124,26 @@ public enum Permission {
     LOST_FOUND_CREATE("LOST_FOUND:CREATE", "Create lost/found items", "LOST_FOUND", "CREATE", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_READ("LOST_FOUND:READ", "View lost/found items", "LOST_FOUND", "READ", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_UPDATE("LOST_FOUND:UPDATE", "Update lost/found items", "LOST_FOUND", "UPDATE", PermissionCategory.LOST_AND_FOUND),
-    LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND);
+    LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND),
+
+    // ==================== MEETING MANAGEMENT ====================
+    // Student Permissions
+    MEETING_CREATE("MEETING:CREATE", "Request meetings with lecturers", "MEETING", "CREATE", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_READ("MEETING:READ", "View meeting requests and details", "MEETING", "READ", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_CANCEL("MEETING:CANCEL", "Cancel own meeting requests", "MEETING", "CANCEL", PermissionCategory.MEETING_MANAGEMENT),
+
+    // Lecturer Permissions
+    MEETING_MANAGE("MEETING:MANAGE", "Manage meeting requests (accept/reject/reschedule)", "MEETING", "MANAGE", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_VIEW_CALENDAR("MEETING:VIEW_CALENDAR", "View meeting calendar", "MEETING", "VIEW_CALENDAR", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_ADD_NOTES("MEETING:ADD_NOTES", "Add notes to meetings", "MEETING", "ADD_NOTES", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_AVAILABILITY("MEETING:AVAILABILITY", "Manage availability slots", "MEETING", "AVAILABILITY", PermissionCategory.MEETING_MANAGEMENT),
+
+    // Admin Permissions
+    MEETING_ADMIN_READ("MEETING:ADMIN_READ", "Admin view all meetings", "MEETING", "ADMIN_READ", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_ADMIN_UPDATE("MEETING:ADMIN_UPDATE", "Admin update any meeting", "MEETING", "ADMIN_UPDATE", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_ADMIN_CANCEL("MEETING:ADMIN_CANCEL", "Admin force cancel any meeting", "MEETING", "ADMIN_CANCEL", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_PERMANENT_DELETE("MEETING:PERMANENT_DELETE", "Permanently delete meetings", "MEETING", "PERMANENT_DELETE", PermissionCategory.MEETING_MANAGEMENT),
+    MEETING_VIEW_STATISTICS("MEETING:VIEW_STATISTICS", "View meeting statistics", "MEETING", "VIEW_STATISTICS", PermissionCategory.MEETING_MANAGEMENT);
 
     private final String permission;
     private final String description;
@@ -144,7 +163,8 @@ public enum Permission {
         EVENT_MANAGEMENT("Event Management"),
         COMMUNICATION("Communication"),
         LOST_AND_FOUND("Lost and Found"),
-        VOTING_MANAGEMENT("Voting Management");
+        VOTING_MANAGEMENT("Voting Management"),
+        MEETING_MANAGEMENT("Meeting Management");
 
         private final String displayName;
 
