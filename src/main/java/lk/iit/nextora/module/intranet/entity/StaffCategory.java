@@ -6,8 +6,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Entity representing a staff category/department information.
- * Stores staff directory and department information with polymorphic nested JSON data.
+ * Entity representing a staff category (SOC, common-info, mail-groups, doc-arch, contacts).
+ * Complex nested data (staffMembers, departments, mailGroups, documents) stored in contentJson.
  */
 @Entity
 @Table(name = "intranet_staff_categories", uniqueConstraints = {
@@ -32,15 +32,11 @@ public class StaffCategory extends BaseEntity {
     @Column(name = "department_full_name", length = 300)
     private String departmentFullName;
 
+    /**
+     * JSON-stored nested data: staffMembers, generalInfo, departments, mailGroups, documents, emergencyContacts.
+     * Deserialized by the mapper/service layer into the appropriate DTO sub-types.
+     */
     @Column(name = "content_json", columnDefinition = "TEXT")
     private String contentJson;
-
-    @Column(name = "is_active")
-    @Builder.Default
-    private Boolean isActive = true;
-
-    @Column(name = "is_deleted")
-    @Builder.Default
-    private Boolean isDeleted = false;
 }
 
