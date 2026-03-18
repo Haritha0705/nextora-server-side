@@ -43,7 +43,9 @@ public enum UserRole {
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
                     Permission.CLUB_MEMBERSHIP_VIEW,
-                    Permission.USER_RESET_PASSWORD
+                    Permission.USER_RESET_PASSWORD,
+                    Permission.MEETING_CREATE,
+                    Permission.MEETING_READ
             )),
 
 
