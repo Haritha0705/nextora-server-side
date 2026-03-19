@@ -282,6 +282,66 @@ public final class ApiConstants {
     public static final String ELECTION_ADMIN_PROCESS_STATUS_PATH = "/process-status-updates";
     public static final String ELECTION_ADMIN_RESET_VOTES_PATH = "/{electionId}/reset-votes";
 
+    // java
+    public static final String BOARDINGHOUSE_PUBLIC = API_V1 + "/boardinghouse";
+    public static final String BOARDINGHOUSE_ADMIN = API_V1 + "/admin/boardinghouse";
+
+    public static final String BOARDINGHOUSE_HOUSES = "/houses";
+    public static final String BOARDINGHOUSE_HOUSES_BY_ID = "/houses/{houseId}";
+    public static final String BOARDINGHOUSE_HOUSES_PERMANENT = "/houses/{houseId}/permanent";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    public static final String VOTING_ADMIN_CLUBS = ELECTION_ADMIN + "/clubs";
+//    public static final String VOTING_ADMIN_CLUB_BY_ID = VOTING_ADMIN_CLUBS + "/{clubId}";
+//    public static final String VOTING_ADMIN_MEMBERSHIPS = ELECTION_ADMIN + "/memberships";
+//    public static final String VOTING_ADMIN_MEMBERSHIP_FORCE_APPROVE = "/{membershipId}/force-approve";
+//    public static final String VOTING_ADMIN_MEMBERSHIP_FORCE_REJECT = "/{membershipId}/force-reject";
+//    public static final String VOTING_ADMIN_MEMBERSHIP_SUSPEND = "/{membershipId}/suspend";
+//    public static final String VOTING_ADMIN_CLUB_MEMBERSHIPS = VOTING_ADMIN_CLUBS + "/{clubId}/memberships";
+//
+//    public static final String VOTING_ADMIN_ELECTIONS = ELECTION_ADMIN + "/elections";
+//    public static final String VOTING_ADMIN_ELECTION_BY_ID = VOTING_ADMIN_ELECTIONS + "/{electionId}";
+//
+//    public static final String VOTING_ADMIN_CANDIDATES = VOTING_ADMIN_ELECTIONS + "/{electionId}/candidates";
+//    public static final String VOTING_ADMIN_CANDIDATE_FORCE_APPROVE = "/candidates/{candidateId}/force-approve";
+//    public static final String VOTING_ADMIN_CANDIDATE_FORCE_REJECT = "/candidates/{candidateId}/force-reject";
+//    public static final String VOTING_ADMIN_CANDIDATE_DISQUALIFY = "/candidates/{candidateId}/disqualify";
+//
+//
+//    public static final String VOTING_ADMIN_STATISTICS = ELECTION_ADMIN + "/statistics";
+//
+//    public static final String VOTING_ADMIN_CLUB_STATISTICS = VOTING_ADMIN_CLUBS + "/{clubId}/statistics";
+//
+//    public static final String VOTING_SUPER_ADMIN_PROCESS_STATUS = ELECTION_ADMIN + "/elections/process-status-updates";
+//
+//    public static final String VOTING_SUPER_ADMIN_AUDIT_LOG = ELECTION_ADMIN + "/audit-log";
+//
+//    public static final String VOTING_SUPER_ADMIN_BULK_APPROVE = ELECTION_ADMIN + "/memberships/bulk-approve";
+//    public static final String VOTING_SUPER_ADMIN_BULK_CANCEL = ELECTION_ADMIN + "/elections/bulk-cancel";
+//
+//    public static final String VOTING_SUPER_ADMIN_CLUB_EXPORT = ELECTION_ADMIN + "/clubs/{clubId}/export";
+//    public static final String VOTING_SUPER_ADMIN_ELECTION_EXPORT = ELECTION_ADMIN + "/elections/{electionId}/export";
+//
+//    public static final String VOTING_SUPER_ADMIN_PERMANENT_DELETE_CLUB = ELECTION_ADMIN + "/clubs/{clubId}/permanent";
+//    public static final String VOTING_SUPER_ADMIN_RESET_VOTES = ELECTION_ADMIN + "/elections/{electionId}/reset-votes";
+//    public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = ELECTION_ADMIN + "/voters/{voterId}/invalidate-votes";
+//    public static final String VOTING_SUPER_ADMIN_CONFIG = ELECTION_ADMIN + "/config";
     // ==================== Kuppi Application Endpoints ====================
     public static final String KUPPI_APPLICATIONS = API_V1 + "/kuppi/applications";
     public static final String KUPPI_APPLICATION_MY = "/my";

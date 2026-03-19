@@ -42,6 +42,10 @@ public enum UserRole {
                     Permission.CANDIDATE_NOMINATE,
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
+                    Permission.CLUB_MEMBERSHIP_VIEW,
+                    Permission.USER_RESET_PASSWORD,
+                    // Boarding House - students can browse listings
+                    Permission.BOARDING_HOUSE_READ
                     Permission.CLUB_MEMBERSHIP_VIEW
             )),
 
@@ -64,6 +68,18 @@ public enum UserRole {
                     Permission.ELECTION_PUBLISH_RESULTS,
                     Permission.CANDIDATE_APPROVE,
                     Permission.CANDIDATE_VIEW,
+
+                    // Voting statistics permissions
+                    Permission.VOTE_VIEW_STATISTICS,
+                    Permission.VOTE_VIEW_RESULTS,
+                    Permission.USER_RESET_PASSWORD,
+                    Permission.USER_UPDATE,
+
+                    // Boarding House - non-academic staff can manage listings
+                    Permission.BOARDING_HOUSE_CREATE,
+                    Permission.BOARDING_HOUSE_READ,
+                    Permission.BOARDING_HOUSE_UPDATE,
+                    Permission.BOARDING_HOUSE_DELETE
                     Permission.EVENT_CREATE,
                     Permission.EVENT_READ,
                     Permission.EVENT_UPDATE,
@@ -113,6 +129,17 @@ public enum UserRole {
     }
 
     private static Set<Permission> getAdminPermissions() {
+        Set<Permission> adminPermissions = new HashSet<>(Arrays.asList(Permission.values()));
+        // Remove super admin exclusive permissions
+        adminPermissions.remove(Permission.ELECTION_SUPER_ADMIN);
+        adminPermissions.remove(Permission.ELECTION_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.USER_ADMIN_DELETE);
+        adminPermissions.remove(Permission.USER_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
+        // Boarding House permanent delete is Super Admin only
+        adminPermissions.remove(Permission.BOARDING_HOUSE_PERMANENT_DELETE);
+        return adminPermissions;
         return new HashSet<>(Arrays.asList(Permission.values()));
     }
 
