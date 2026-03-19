@@ -74,7 +74,13 @@ public enum UserRole {
                     Permission.VOTE_VIEW_STATISTICS,
                     Permission.VOTE_VIEW_RESULTS,
                     Permission.USER_RESET_PASSWORD,
-                    Permission.USER_UPDATE
+                    Permission.USER_UPDATE,
+
+                    // Boarding House - non-academic staff can manage listings
+                    Permission.BOARDING_HOUSE_CREATE,
+                    Permission.BOARDING_HOUSE_READ,
+                    Permission.BOARDING_HOUSE_UPDATE,
+                    Permission.BOARDING_HOUSE_DELETE
             )),
 
     // ==================== ACADEMIC_STAFF (includes Lecturer permissions) ====================

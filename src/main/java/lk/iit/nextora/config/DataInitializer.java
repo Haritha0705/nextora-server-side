@@ -3,6 +3,9 @@ package lk.iit.nextora.config;
 import lk.iit.nextora.common.enums.*;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.repository.*;
+import lk.iit.nextora.module.boardinghouse.entity.BoardingHouse;
+import lk.iit.nextora.module.boardinghouse.entity.BoardingHouseImage;
+import lk.iit.nextora.module.boardinghouse.repository.BoardingHouseRepository;
 import lk.iit.nextora.module.club.entity.Club;
 import lk.iit.nextora.module.club.entity.ClubMembership;
 import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
@@ -16,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -32,6 +36,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ClubRepository clubRepository;
     private final ClubMembershipRepository clubMembershipRepository;
     private final ElectionRepository electionRepository;
+    private final BoardingHouseRepository boardingHouseRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -47,6 +52,7 @@ public class DataInitializer implements CommandLineRunner {
         createClubs();
         createClubMemberships();
         createElections();
+        createBoardingHouses();
 
         log.info("Data initialization completed successfully!");
     }
@@ -839,6 +845,238 @@ public class DataInitializer implements CommandLineRunner {
                 electionRepository.save(csPoll);
                 log.info("Created Election: {}", csPoll.getTitle());
             }
+        }
+    }
+
+    private void createBoardingHouses() {
+        if (boardingHouseRepository.count() == 0) {
+            Admin admin = adminRepository.findAll().stream().findFirst().orElse(null);
+            if (admin == null) {
+                log.warn("No admin found, skipping boarding house creation");
+                return;
+            }
+
+            // 1. Luxury Boarding near IIT Colombo
+            BoardingHouse bh1 = BoardingHouse.builder()
+                    .title("Luxury Boarding - Near IIT Colombo")
+                    .description("Fully furnished luxury boarding house just 5 minutes walk from IIT Colombo campus. Features modern amenities including high-speed WiFi, AC rooms, hot water, and a spacious study area. Ideal for students who want comfort and convenience.")
+                    .price(new BigDecimal("35000.00"))
+                    .address("45 Bauddhaloka Mawatha, Colombo 4")
+                    .city("Colombo")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.ANY)
+                    .totalRooms(10)
+                    .availableRooms(3)
+                    .contactName("Mrs. Kumari Perera")
+                    .contactPhone("0771234567")
+                    .contactEmail("kumari.boarding@gmail.com")
+                    .amenities(Set.of("WiFi", "AC", "Hot Water", "Study Room", "Parking", "Laundry", "CCTV"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(150L)
+                    .build();
+            boardingHouseRepository.save(bh1);
+            log.info("Created Boarding House: {}", bh1.getTitle());
+
+            // 2. Budget-Friendly Girls Hostel
+            BoardingHouse bh2 = BoardingHouse.builder()
+                    .title("Budget Girls Hostel - Bambalapitiya")
+                    .description("Safe and affordable girls-only hostel in Bambalapitiya. Close to public transport and restaurants. Includes meals (breakfast and dinner), WiFi, and 24/7 security. Warden on premises at all times.")
+                    .price(new BigDecimal("15000.00"))
+                    .address("78 Galle Road, Bambalapitiya")
+                    .city("Colombo")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.FEMALE)
+                    .totalRooms(20)
+                    .availableRooms(5)
+                    .contactName("Mrs. Dilani Fernando")
+                    .contactPhone("0779876543")
+                    .contactEmail("dilani.hostel@gmail.com")
+                    .amenities(Set.of("WiFi", "Meals", "CCTV", "Security Guard", "Laundry"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(230L)
+                    .build();
+            boardingHouseRepository.save(bh2);
+            log.info("Created Boarding House: {}", bh2.getTitle());
+
+            // 3. Boys Boarding - Dehiwala
+            BoardingHouse bh3 = BoardingHouse.builder()
+                    .title("Spacious Boys Boarding - Dehiwala")
+                    .description("Well-maintained boys boarding in a quiet residential area in Dehiwala. Each room has an attached bathroom. Common kitchen and dining area available. 15 minutes by bus to IIT campus.")
+                    .price(new BigDecimal("20000.00"))
+                    .address("12 Station Road, Dehiwala")
+                    .city("Dehiwala")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.MALE)
+                    .totalRooms(15)
+                    .availableRooms(4)
+                    .contactName("Mr. Ranjith Silva")
+                    .contactPhone("0712345678")
+                    .contactEmail("ranjith.boarding@gmail.com")
+                    .amenities(Set.of("WiFi", "Attached Bathroom", "Kitchen", "Parking", "Hot Water"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(89L)
+                    .build();
+            boardingHouseRepository.save(bh3);
+            log.info("Created Boarding House: {}", bh3.getTitle());
+
+            // 4. Premium Co-Living Space - Colombo 7
+            BoardingHouse bh4 = BoardingHouse.builder()
+                    .title("Premium Co-Living Space - Colombo 7")
+                    .description("Modern co-living space designed for university students. Fully furnished rooms with ergonomic study desks, high-speed fiber WiFi, gym access, and a rooftop lounge. Walking distance to IIT and multiple cafes.")
+                    .price(new BigDecimal("45000.00"))
+                    .address("22 Torrington Avenue, Colombo 7")
+                    .city("Colombo")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.ANY)
+                    .totalRooms(8)
+                    .availableRooms(2)
+                    .contactName("Mr. Ashan Jayawardena")
+                    .contactPhone("0761234567")
+                    .contactEmail("ashan.coliving@gmail.com")
+                    .amenities(Set.of("WiFi", "AC", "Gym", "Rooftop Lounge", "Study Room", "Laundry", "CCTV", "Parking"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(310L)
+                    .build();
+            boardingHouseRepository.save(bh4);
+            log.info("Created Boarding House: {}", bh4.getTitle());
+
+            // 5. Affordable Boarding - Mount Lavinia
+            BoardingHouse bh5 = BoardingHouse.builder()
+                    .title("Affordable Boarding - Mount Lavinia")
+                    .description("Clean and affordable boarding place near Mount Lavinia beach. Shared rooms available at lower rates. Includes basic furniture, fan rooms, and shared kitchen. Great for budget-conscious students.")
+                    .price(new BigDecimal("10000.00"))
+                    .address("56 Hotel Road, Mount Lavinia")
+                    .city("Mount Lavinia")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.MALE)
+                    .totalRooms(12)
+                    .availableRooms(6)
+                    .contactName("Mr. Bandara Wijesinghe")
+                    .contactPhone("0751234567")
+                    .contactEmail("bandara.rooms@gmail.com")
+                    .amenities(Set.of("WiFi", "Kitchen", "Furniture"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(175L)
+                    .build();
+            boardingHouseRepository.save(bh5);
+            log.info("Created Boarding House: {}", bh5.getTitle());
+
+            // 6. Girls-Only Boarding - Wellawatte
+            BoardingHouse bh6 = BoardingHouse.builder()
+                    .title("Safe Girls Boarding - Wellawatte")
+                    .description("Secure girls-only boarding in Wellawatte with strict entry rules. Fully furnished rooms with AC. Meals provided three times a day. On-site warden and CCTV surveillance. 10 minutes to IIT by bus.")
+                    .price(new BigDecimal("25000.00"))
+                    .address("33 Charlemont Road, Wellawatte")
+                    .city("Colombo")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.FEMALE)
+                    .totalRooms(16)
+                    .availableRooms(3)
+                    .contactName("Mrs. Nimalka Rathnayake")
+                    .contactPhone("0781234567")
+                    .contactEmail("nimalka.girls@gmail.com")
+                    .amenities(Set.of("WiFi", "AC", "Meals", "CCTV", "Security Guard", "Hot Water", "Laundry"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(198L)
+                    .build();
+            boardingHouseRepository.save(bh6);
+            log.info("Created Boarding House: {}", bh6.getTitle());
+
+            // 7. Student Boarding - Nugegoda (Unavailable)
+            BoardingHouse bh7 = BoardingHouse.builder()
+                    .title("Student Boarding - Nugegoda")
+                    .description("Convenient boarding place in Nugegoda town center. Close to supermarkets, banks, and bus routes. Basic amenities provided. Currently fully occupied.")
+                    .price(new BigDecimal("18000.00"))
+                    .address("15 High Level Road, Nugegoda")
+                    .city("Nugegoda")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.ANY)
+                    .totalRooms(10)
+                    .availableRooms(0)
+                    .contactName("Mr. Sunil Rathnayake")
+                    .contactPhone("0741234567")
+                    .contactEmail("sunil.rooms@gmail.com")
+                    .amenities(Set.of("WiFi", "Furniture", "Kitchen", "Parking"))
+                    .isAvailable(false)
+                    .postedBy(admin)
+                    .viewCount(120L)
+                    .build();
+            boardingHouseRepository.save(bh7);
+            log.info("Created Boarding House: {}", bh7.getTitle());
+
+            // 8. Modern Boarding - Malabe
+            BoardingHouse bh8 = BoardingHouse.builder()
+                    .title("Modern Boarding House - Malabe")
+                    .description("Newly built boarding house in Malabe with modern facilities. Each room has an en-suite bathroom, study desk, and wardrobe. Common area with TV, pool table, and vending machines. Free shuttle service to nearby universities.")
+                    .price(new BigDecimal("28000.00"))
+                    .address("100 Athurugiriya Road, Malabe")
+                    .city("Malabe")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.ANY)
+                    .totalRooms(25)
+                    .availableRooms(8)
+                    .contactName("Mr. Kasun Abeysekara")
+                    .contactPhone("0701234567")
+                    .contactEmail("kasun.boarding@gmail.com")
+                    .amenities(Set.of("WiFi", "AC", "Attached Bathroom", "Study Room", "TV Room", "Shuttle Service", "CCTV", "Parking"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(265L)
+                    .build();
+            boardingHouseRepository.save(bh8);
+            log.info("Created Boarding House: {}", bh8.getTitle());
+
+            // 9. Budget Boarding - Moratuwa
+            BoardingHouse bh9 = BoardingHouse.builder()
+                    .title("Budget Boarding - Moratuwa")
+                    .description("Simple and affordable boarding in Moratuwa. Shared rooms with basic amenities. Walking distance to Moratuwa railway station. Suitable for students looking for the most economical option.")
+                    .price(new BigDecimal("8000.00"))
+                    .address("22 Lake Road, Moratuwa")
+                    .city("Moratuwa")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.MALE)
+                    .totalRooms(8)
+                    .availableRooms(3)
+                    .contactName("Mr. Pradeep Kumara")
+                    .contactPhone("0721234567")
+                    .contactEmail("pradeep.budget@gmail.com")
+                    .amenities(Set.of("WiFi", "Furniture"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(95L)
+                    .build();
+            boardingHouseRepository.save(bh9);
+            log.info("Created Boarding House: {}", bh9.getTitle());
+
+            // 10. Executive Ladies Hostel - Colombo 5
+            BoardingHouse bh10 = BoardingHouse.builder()
+                    .title("Executive Ladies Hostel - Colombo 5")
+                    .description("Premium ladies hostel in Colombo 5 (Havelock Town). Designed for female university students and working professionals. All rooms are AC with attached bathrooms. Includes breakfast, dinner, and high-speed WiFi. Gym and yoga room available.")
+                    .price(new BigDecimal("40000.00"))
+                    .address("8 Havelock Road, Colombo 5")
+                    .city("Colombo")
+                    .district("Colombo")
+                    .genderPreference(GenderPreference.FEMALE)
+                    .totalRooms(18)
+                    .availableRooms(4)
+                    .contactName("Mrs. Chamari Weerasinghe")
+                    .contactPhone("0691234567")
+                    .contactEmail("chamari.executive@gmail.com")
+                    .amenities(Set.of("WiFi", "AC", "Attached Bathroom", "Meals", "Gym", "Yoga Room", "CCTV", "Security Guard", "Laundry", "Hot Water"))
+                    .isAvailable(true)
+                    .postedBy(admin)
+                    .viewCount(340L)
+                    .build();
+            boardingHouseRepository.save(bh10);
+            log.info("Created Boarding House: {}", bh10.getTitle());
+
+            log.info("Created 10 boarding house listings");
         }
     }
 }

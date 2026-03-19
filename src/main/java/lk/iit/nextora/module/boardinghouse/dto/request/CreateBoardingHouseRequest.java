@@ -65,8 +65,5 @@ public class CreateBoardingHouseRequest {
     @Builder.Default
     private Set<String> amenities = new HashSet<>();
 
-    @Size(max = 1000, message = "Image URL must not exceed 1000 characters")
-    private String imageUrl;
-
     private Boolean isAvailable = true;
 }

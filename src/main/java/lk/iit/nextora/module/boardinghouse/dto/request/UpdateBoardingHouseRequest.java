@@ -57,8 +57,5 @@ public class UpdateBoardingHouseRequest {
 
     private Set<String> amenities;
 
-    @Size(max = 1000, message = "Image URL must not exceed 1000 characters")
-    private String imageUrl;
-
     private Boolean isAvailable;
 }
