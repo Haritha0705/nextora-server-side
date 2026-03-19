@@ -1,12 +1,15 @@
 package lk.iit.nextora.module.auth.mapper;
 
+import lk.iit.nextora.common.enums.StudentRoleType;
 import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.module.auth.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MapStruct mapper for extracting role-specific user data
@@ -41,7 +44,11 @@ public interface UserResponseMapper {
         data.put("batch", student.getBatch());
         data.put("program", student.getProgram());
         data.put("faculty", student.getFaculty());
-        data.put("studentRoleTypes", student.getStudentRoleTypes());
+
+        // Convert to new HashSet to avoid Hibernate lazy loading proxy issues when caching
+        Set<StudentRoleType> roleTypes = student.getStudentRoleTypes();
+        data.put("studentRoleTypes", roleTypes != null ? new HashSet<>(roleTypes) : new HashSet<>());
+
         data.put("primaryRoleType", student.getPrimaryRoleType());
         data.put("studentRoleDisplayName", student.getStudentRoleDisplayName());
         data.put("enrollmentDate", student.getEnrollmentDate());
@@ -62,10 +69,13 @@ public interface UserResponseMapper {
                 data.put("clubMemberData", clubData);
             }
 
-            // SENIOR_KUPPI data
-            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI)) {
+            // KUPPI_STUDENT or SENIOR_KUPPI data (check both for compatibility)
+            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.KUPPI_STUDENT) ||
+                student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI)) {
                 Map<String, Object> kuppiData = new HashMap<>();
-                kuppiData.put("kuppiSubjects", student.getKuppiSubjects());
+                // Convert to new HashSet to avoid Hibernate lazy loading proxy issues
+                Set<String> subjects = student.getKuppiSubjects();
+                kuppiData.put("kuppiSubjects", subjects != null ? new HashSet<>(subjects) : new HashSet<>());
                 kuppiData.put("kuppiExperienceLevel", student.getKuppiExperienceLevel());
                 kuppiData.put("kuppiSessionsCompleted", student.getKuppiSessionsCompleted());
                 kuppiData.put("kuppiRating", student.getKuppiRating());
@@ -95,7 +105,9 @@ public interface UserResponseMapper {
         Map<String, Object> data = new HashMap<>();
         data.put("adminId", admin.getAdminId());
         data.put("department", admin.getDepartment());
-        data.put("permissions", admin.getPermissions());
+        // Convert to new HashSet to avoid Hibernate lazy loading proxy issues when caching
+        var permissions = admin.getPermissions();
+        data.put("permissions", permissions != null ? new HashSet<>(permissions) : new HashSet<>());
         data.put("assignedDate", admin.getAssignedDate());
         return data;
     }
@@ -116,7 +128,9 @@ public interface UserResponseMapper {
         // Lecturer-specific fields
         data.put("designation", staff.getDesignation());
         data.put("specialization", staff.getSpecialization());
-        data.put("qualifications", staff.getQualifications());
+        // Convert to new HashSet to avoid Hibernate lazy loading proxy issues when caching
+        var qualifications = staff.getQualifications();
+        data.put("qualifications", qualifications != null ? new HashSet<>(qualifications) : new HashSet<>());
         data.put("bio", staff.getBio());
         data.put("availableForMeetings", staff.getAvailableForMeetings());
         return data;
