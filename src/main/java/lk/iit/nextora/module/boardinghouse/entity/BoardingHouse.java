@@ -8,7 +8,9 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -72,9 +74,10 @@ public class BoardingHouse extends BaseEntity {
     @Builder.Default
     private Set<String> amenities = new HashSet<>();
 
-    // Image URLs stored as JSON-like comma-separated or just first image
-    @Column(length = 1000)
-    private String imageUrl;
+    @OneToMany(mappedBy = "boardingHouse", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<BoardingHouseImage> images = new ArrayList<>();
 
     @Column(nullable = false)
     @Builder.Default
@@ -90,5 +93,23 @@ public class BoardingHouse extends BaseEntity {
 
     public void incrementViewCount() {
         this.viewCount++;
+    }
+
+    public void addImage(BoardingHouseImage image) {
+        images.add(image);
+        image.setBoardingHouse(this);
+    }
+
+    public void removeImage(BoardingHouseImage image) {
+        images.remove(image);
+        image.setBoardingHouse(null);
+    }
+
+    public String getPrimaryImageUrl() {
+        return images.stream()
+                .filter(BoardingHouseImage::getIsPrimary)
+                .findFirst()
+                .map(BoardingHouseImage::getImageUrl)
+                .orElse(images.isEmpty() ? null : images.get(0).getImageUrl());
     }
 }

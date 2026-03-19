@@ -10,6 +10,7 @@ import lk.iit.nextora.common.enums.GenderPreference;
 import lk.iit.nextora.module.boardinghouse.dto.request.BoardingHouseFilterRequest;
 import lk.iit.nextora.module.boardinghouse.dto.request.CreateBoardingHouseRequest;
 import lk.iit.nextora.module.boardinghouse.dto.request.UpdateBoardingHouseRequest;
+import lk.iit.nextora.module.boardinghouse.dto.response.BoardingHouseImageResponse;
 import lk.iit.nextora.module.boardinghouse.dto.response.BoardingHouseResponse;
 import lk.iit.nextora.module.boardinghouse.service.BoardingHouseService;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +18,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-/**
- * Controller for Boarding House operations.
- * Handles student browsing + admin listing management.
- */
 @RestController
 @RequestMapping(ApiConstants.BOARDINGHOUSE_PUBLIC)
 @RequiredArgsConstructor
@@ -34,10 +34,10 @@ public class BoardingHouseController {
 
     private final BoardingHouseService boardingHouseService;
 
-    // ==================== Student / Public Endpoints ====================
+    // ==================== Browse Endpoints (All authenticated users with BOARDING_HOUSE:READ) ====================
 
     @GetMapping(ApiConstants.BOARDINGHOUSE_HOUSES)
-    @Operation(summary = "Get all available listings", description = "Browse all available boarding houses")
+    @Operation(summary = "Get all available listings", description = "Browse all available boarding houses (any authenticated user)")
     @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
     public ApiResponse<PagedResponse<BoardingHouseResponse>> getAllAvailable(
             @RequestParam(defaultValue = "0") int page,
@@ -128,10 +128,10 @@ public class BoardingHouseController {
                 boardingHouseService.filterByDistrict(district, pageable));
     }
 
-    // ==================== Admin Endpoints (Create/Update/Delete own listings) ====================
+    // ==================== CRUD Endpoints (Admin, Non-Academic Staff, Super Admin) ====================
 
     @PostMapping(ApiConstants.BOARDINGHOUSE_HOUSES)
-    @Operation(summary = "Create listing", description = "Create a new boarding house listing (Admin only)")
+    @Operation(summary = "Create listing", description = "Create a new boarding house listing (Admin, Non-Academic Staff)")
     @PreAuthorize("hasAuthority('BOARDING_HOUSE:CREATE')")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<BoardingHouseResponse> create(
@@ -141,7 +141,7 @@ public class BoardingHouseController {
     }
 
     @PutMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID)
-    @Operation(summary = "Update own listing", description = "Update own boarding house listing")
+    @Operation(summary = "Update listing", description = "Update a boarding house listing (owner or admin)")
     @PreAuthorize("hasAuthority('BOARDING_HOUSE:UPDATE')")
     public ApiResponse<BoardingHouseResponse> update(
             @PathVariable Long houseId,
@@ -151,7 +151,7 @@ public class BoardingHouseController {
     }
 
     @DeleteMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID)
-    @Operation(summary = "Delete own listing", description = "Soft delete own boarding house listing")
+    @Operation(summary = "Delete listing", description = "Soft delete a boarding house listing (owner or admin)")
     @PreAuthorize("hasAuthority('BOARDING_HOUSE:DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> delete(@PathVariable Long houseId) {
@@ -160,7 +160,7 @@ public class BoardingHouseController {
     }
 
     @GetMapping(ApiConstants.BOARDINGHOUSE_HOUSES + "/my")
-    @Operation(summary = "Get my listings", description = "Get own boarding house listings (Admin)")
+    @Operation(summary = "Get my listings", description = "Get own boarding house listings")
     @PreAuthorize("hasAuthority('BOARDING_HOUSE:CREATE')")
     public ApiResponse<PagedResponse<BoardingHouseResponse>> getMyListings(
             @RequestParam(defaultValue = "0") int page,
@@ -181,5 +181,48 @@ public class BoardingHouseController {
         Pageable pageable = PageRequest.of(page, size);
         return ApiResponse.success("All listings retrieved successfully",
                 boardingHouseService.getAllForAdmin(pageable));
+    }
+
+    // ==================== Image Endpoints (S3) ====================
+
+    @PostMapping(value = ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID + "/images",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload images", description = "Upload images for a boarding house listing (max 10 images, 5MB each)")
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:UPDATE')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<List<BoardingHouseImageResponse>> uploadImages(
+            @PathVariable Long houseId,
+            @RequestParam("files") List<MultipartFile> files) {
+        return ApiResponse.success("Images uploaded successfully",
+                boardingHouseService.uploadImages(houseId, files));
+    }
+
+    @DeleteMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID + "/images/{imageId}")
+    @Operation(summary = "Delete image", description = "Delete an image from a boarding house listing")
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:UPDATE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ApiResponse<Void> deleteImage(
+            @PathVariable Long houseId,
+            @PathVariable Long imageId) {
+        boardingHouseService.deleteImage(houseId, imageId);
+        return ApiResponse.success("Image deleted successfully");
+    }
+
+    @PutMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID + "/images/{imageId}/primary")
+    @Operation(summary = "Set primary image", description = "Set an image as the primary/cover image")
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:UPDATE')")
+    public ApiResponse<BoardingHouseImageResponse> setPrimaryImage(
+            @PathVariable Long houseId,
+            @PathVariable Long imageId) {
+        return ApiResponse.success("Primary image updated",
+                boardingHouseService.setPrimaryImage(houseId, imageId));
+    }
+
+    @GetMapping(ApiConstants.BOARDINGHOUSE_HOUSES_BY_ID + "/images")
+    @Operation(summary = "Get images", description = "Get all images for a boarding house listing")
+    @PreAuthorize("hasAuthority('BOARDING_HOUSE:READ')")
+    public ApiResponse<List<BoardingHouseImageResponse>> getImages(@PathVariable Long houseId) {
+        return ApiResponse.success("Images retrieved successfully",
+                boardingHouseService.getImages(houseId));
     }
 }
