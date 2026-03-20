@@ -204,6 +204,9 @@ public enum Permission {
     LOST_FOUND_READ("LOST_FOUND:READ", "View lost/found items", "LOST_FOUND", "READ", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_UPDATE("LOST_FOUND:UPDATE", "Update lost/found items", "LOST_FOUND", "UPDATE", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND),
+    LOST_FOUND_CLAIM("LOST_FOUND:CLAIM", "Submit claims for lost/found items", "LOST_FOUND", "CLAIM", PermissionCategory.LOST_AND_FOUND),
+    LOST_FOUND_ADMIN_VIEW("LOST_FOUND:ADMIN_VIEW", "Admin view all claims", "LOST_FOUND", "ADMIN_VIEW", PermissionCategory.LOST_AND_FOUND),
+    LOST_FOUND_ADMIN_UPDATE("LOST_FOUND:ADMIN_UPDATE", "Admin update claims", "LOST_FOUND", "ADMIN_UPDATE", PermissionCategory.LOST_AND_FOUND),
 
     // ==================== PUSH NOTIFICATIONS ====================
     PUSH_SEND("PUSH:SEND", "Send push notifications", "PUSH", "SEND", PermissionCategory.PUSH_NOTIFICATION),

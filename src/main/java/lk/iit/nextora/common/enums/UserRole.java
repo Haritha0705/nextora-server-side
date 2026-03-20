@@ -36,6 +36,8 @@ public enum UserRole {
                     Permission.COMMUNICATION_SEND,
                     Permission.LOST_FOUND_CREATE,
                     Permission.LOST_FOUND_READ,
+                    Permission.LOST_FOUND_UPDATE,
+                    Permission.LOST_FOUND_CLAIM,
                     // Voting permissions for students
                     Permission.ELECTION_READ,
                     Permission.CANDIDATE_VIEW,
@@ -73,6 +75,14 @@ public enum UserRole {
                     Permission.USER_RESET_PASSWORD,
                     Permission.USER_UPDATE,
 
+                    // Lost & Found admin permissions
+                    Permission.LOST_FOUND_CREATE,
+                    Permission.LOST_FOUND_READ,
+                    Permission.LOST_FOUND_UPDATE,
+                    Permission.LOST_FOUND_DELETE,
+                    Permission.LOST_FOUND_CLAIM,
+                    Permission.LOST_FOUND_ADMIN_VIEW,
+                    Permission.LOST_FOUND_ADMIN_UPDATE
                     // Boarding House - non-academic staff can manage listings
                     Permission.BOARDING_HOUSE_CREATE,
                     Permission.BOARDING_HOUSE_READ,
