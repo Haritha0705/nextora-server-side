@@ -7,6 +7,12 @@ import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.MeetingStatus;
+import lk.iit.nextora.common.exception.custom.BadRequestException;
+import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
+import lk.iit.nextora.config.S3.S3Service;
+import lk.iit.nextora.config.security.SecurityService;
+import lk.iit.nextora.module.auth.entity.AcademicStaff;
+import lk.iit.nextora.module.auth.repository.AcademicStaffRepository;
 import lk.iit.nextora.module.meeting.dto.request.*;
 import lk.iit.nextora.module.meeting.dto.response.MeetingResponse;
 import lk.iit.nextora.module.meeting.dto.response.MeetingStatisticsResponse;
@@ -17,11 +23,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST Controller for Meeting operations (Student-Lecturer meetings).
@@ -47,6 +56,9 @@ import java.util.List;
 public class MeetingController {
 
     private final MeetingService meetingService;
+    private final S3Service s3Service;
+    private final AcademicStaffRepository academicStaffRepository;
+    private final SecurityService securityService;
 
     // ==================== Student Endpoints ====================
 
@@ -332,5 +344,59 @@ public class MeetingController {
     public ApiResponse<MeetingResponse> completeMeeting(@PathVariable Long meetingId) {
         MeetingResponse response = meetingService.completeMeeting(meetingId);
         return ApiResponse.success("Meeting completed successfully", response);
+    }
+
+    // ==================== Lecturer Profile Image ====================
+
+    @PostMapping(value = "/lecturer/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload lecturer profile image", description = "Lecturer uploads their profile image to S3")
+    @PreAuthorize("hasAuthority('MEETING:MANAGE')")
+    public ApiResponse<Map<String, String>> uploadLecturerProfileImage(@RequestParam("file") MultipartFile file) {
+        Long currentUserId = securityService.getCurrentUserId();
+
+        if (file.isEmpty()) {
+            throw new BadRequestException("File is required");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException("Only image files are allowed");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new BadRequestException("File size must not exceed 5MB");
+        }
+
+        AcademicStaff lecturer = academicStaffRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lecturer", "id", currentUserId));
+
+        String imageUrl = s3Service.uploadFilePublic(file, "meetings/lecturer-profiles/" + currentUserId);
+        lecturer.setProfileImageUrl(imageUrl);
+        academicStaffRepository.save(lecturer);
+
+        log.info("Lecturer {} uploaded profile image", currentUserId);
+        return ApiResponse.success("Profile image uploaded successfully", Map.of("imageUrl", imageUrl));
+    }
+
+    // ==================== Meeting Attachment Upload ====================
+
+    @PostMapping(value = "/{meetingId}/attachment", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload meeting attachment", description = "Upload an attachment for a meeting request")
+    @PreAuthorize("hasAuthority('MEETING:READ')")
+    public ApiResponse<Map<String, String>> uploadMeetingAttachment(
+            @PathVariable Long meetingId,
+            @RequestParam("file") MultipartFile file) {
+
+        if (file.isEmpty()) {
+            throw new BadRequestException("File is required");
+        }
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new BadRequestException("File size must not exceed 10MB");
+        }
+
+        String attachmentUrl = s3Service.uploadFilePublic(file, "meetings/attachments/" + meetingId);
+        meetingService.updateAttachment(meetingId, attachmentUrl, file.getOriginalFilename());
+
+        log.info("Attachment uploaded for meeting {}", meetingId);
+        return ApiResponse.success("Attachment uploaded successfully",
+                Map.of("attachmentUrl", attachmentUrl, "fileName", file.getOriginalFilename()));
     }
 }

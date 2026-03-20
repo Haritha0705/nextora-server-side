@@ -55,6 +55,9 @@ public class AcademicStaff extends BaseUser {
     @Column(length = 500)
     private String bio;
 
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
     @Builder.Default
     private Boolean availableForMeetings = true;
 
