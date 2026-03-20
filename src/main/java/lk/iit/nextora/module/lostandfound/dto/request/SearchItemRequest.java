@@ -38,10 +38,11 @@ public class SearchItemRequest {
 
     // Zero-based page number — defaults to first page
     @Min(value = 0, message = "Page number must be 0 or greater")
+    @Builder.Default
     private int page = 0;
 
-    // Number of results per page — capped at 100 to prevent oversized responses
     @Min(value = 1, message = "Page size must be at least 1")
     @Max(value = 100, message = "Page size must not exceed 100")
+    @Builder.Default
     private int size = 10;
 }
