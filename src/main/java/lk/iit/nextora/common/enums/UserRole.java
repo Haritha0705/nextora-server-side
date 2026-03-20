@@ -46,6 +46,9 @@ public enum UserRole {
                     Permission.VOTE_VIEW_RESULTS,
                     Permission.CLUB_MEMBERSHIP_VIEW,
                     Permission.USER_RESET_PASSWORD,
+                    Permission.MEETING_CREATE,
+                    Permission.MEETING_READ,
+                    Permission.MEETING_CANCEL
                     // Boarding House - students can browse listings
                     Permission.BOARDING_HOUSE_READ
             )),
@@ -115,6 +118,13 @@ public enum UserRole {
                     Permission.COMMUNICATION_READ,
                     Permission.COMMUNICATION_SEND,
                     Permission.COMMUNICATION_BROADCAST,
+                    Permission.LOST_FOUND_READ,
+                    Permission.USER_RESET_PASSWORD,
+                    Permission.MEETING_MANAGE,
+                    Permission.MEETING_VIEW_CALENDAR,
+                    Permission.MEETING_ADD_NOTES,
+                    Permission.MEETING_AVAILABILITY,
+                    Permission.MEETING_READ
                     Permission.LOST_FOUND_READ
             ));
 

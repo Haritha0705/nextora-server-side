@@ -14,6 +14,8 @@ import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
 import lk.iit.nextora.module.election.entity.*;
 import lk.iit.nextora.module.election.repository.*;
+import lk.iit.nextora.module.meeting.entity.Meeting;
+import lk.iit.nextora.module.meeting.repository.MeetingRepository;
 import lk.iit.nextora.module.lostandfound.entity.*;
 import lk.iit.nextora.module.lostandfound.repository.*;
 import lk.iit.nextora.module.event.entity.Event;
@@ -46,6 +48,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ClubRepository clubRepository;
     private final ClubMembershipRepository clubMembershipRepository;
     private final ElectionRepository electionRepository;
+    private final MeetingRepository meetingRepository;
     private final BoardingHouseRepository boardingHouseRepository;
     private final PasswordEncoder passwordEncoder;
     private final ItemCategoryRepository itemCategoryRepository;
@@ -84,6 +87,7 @@ public class DataInitializer implements CommandLineRunner {
         createClubs();
         createClubMemberships();
         createElections();
+        createMeetings();
         createLostAndFoundData();
         createBoardingHouses();
         createEvents();
@@ -885,6 +889,223 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    private void createMeetings() {
+        if (meetingRepository.count() == 0) {
+            // Get lecturers
+            AcademicStaff lecturer1 = academicStaffRepository.findByEmail("james.academic@example.com").orElse(null);
+            AcademicStaff lecturer2 = academicStaffRepository.findByEmail("sarah.academic@example.com").orElse(null);
+
+            // Get students
+            Student student1 = studentRepository.findByEmail("normal.student@iit.ac.lk").orElse(null);
+            Student student2 = studentRepository.findByEmail("club.president@iit.ac.lk").orElse(null);
+            Student student3 = studentRepository.findByEmail("batch.rep@iit.ac.lk").orElse(null);
+            Student student4 = studentRepository.findByEmail("club.member@iit.ac.lk").orElse(null);
+
+            if (lecturer1 == null || student1 == null) {
+                log.warn("Required users not found, skipping meeting creation");
+                return;
+            }
+
+            // 1. COMPLETED meeting with feedback - Project Discussion (past)
+            Meeting m1 = Meeting.builder()
+                    .student(student1)
+                    .lecturer(lecturer1)
+                    .subject("Final Year Project Proposal - AI Chatbot")
+                    .meetingType(MeetingType.PROJECT_DISCUSSION)
+                    .description("Discuss the feasibility and scope of my final year project on building an AI-powered campus chatbot using NLP techniques.")
+                    .preferredDateTime(LocalDateTime.now().minusDays(10))
+                    .preferredDurationMinutes(45)
+                    .priority(3)
+                    .status(MeetingStatus.COMPLETED)
+                    .scheduledStartTime(LocalDateTime.now().minusDays(8).withHour(10).withMinute(0))
+                    .scheduledEndTime(LocalDateTime.now().minusDays(8).withHour(10).withMinute(45))
+                    .isOnline(false)
+                    .location("Block A, Room 101 - Dr. Smith's Office")
+                    .lecturerResponse("Happy to discuss your project. Please bring your literature review.")
+                    .respondedAt(LocalDateTime.now().minusDays(9))
+                    .actualStartTime(LocalDateTime.now().minusDays(8).withHour(10).withMinute(0))
+                    .actualEndTime(LocalDateTime.now().minusDays(8).withHour(10).withMinute(40))
+                    .meetingNotes("Discussed AI chatbot architecture. Student will use Transformer models. Next steps: prepare detailed system design document and dataset plan.")
+                    .followUpRequired(true)
+                    .followUpNotes("Student needs to submit system design by next Friday")
+                    .studentRating(5)
+                    .studentFeedback("Dr. Smith gave excellent guidance on the ML approach. Very helpful session!")
+                    .feedbackSubmittedAt(LocalDateTime.now().minusDays(7))
+                    .studentNotified(true)
+                    .reminderSent(true)
+                    .finalReminderSent(true)
+                    .build();
+            meetingRepository.save(m1);
+            log.info("Created Meeting: {} [COMPLETED]", m1.getSubject());
+
+            // 2. SCHEDULED meeting - Academic Guidance (upcoming)
+            if (student2 != null) {
+                Meeting m2 = Meeting.builder()
+                        .student(student2)
+                        .lecturer(lecturer1)
+                        .subject("Module Selection Guidance for Semester 2")
+                        .meetingType(MeetingType.ACADEMIC_GUIDANCE)
+                        .description("Need help selecting elective modules for next semester. Interested in Data Science track but unsure about prerequisites.")
+                        .preferredDateTime(LocalDateTime.now().plusDays(2))
+                        .preferredDurationMinutes(30)
+                        .priority(2)
+                        .status(MeetingStatus.SCHEDULED)
+                        .scheduledStartTime(LocalDateTime.now().plusDays(3).withHour(14).withMinute(0))
+                        .scheduledEndTime(LocalDateTime.now().plusDays(3).withHour(14).withMinute(30))
+                        .isOnline(true)
+                        .meetingLink("https://meet.google.com/abc-defg-hij")
+                        .meetingPlatform("Google Meet")
+                        .lecturerResponse("Let's go through the module catalog together. I'll share my screen.")
+                        .respondedAt(LocalDateTime.now().minusDays(1))
+                        .studentNotified(true)
+                        .build();
+                meetingRepository.save(m2);
+                log.info("Created Meeting: {} [SCHEDULED]", m2.getSubject());
+            }
+
+            // 3. PENDING meeting - Career Counseling (awaiting lecturer response)
+            if (student3 != null) {
+                Meeting m3 = Meeting.builder()
+                        .student(student3)
+                        .lecturer(lecturer1)
+                        .subject("Industry Placement Preparation")
+                        .meetingType(MeetingType.CAREER_COUNSELING)
+                        .description("Looking for guidance on preparing for industry placement interviews. Interested in software engineering roles at tech companies in Sri Lanka.")
+                        .preferredDateTime(LocalDateTime.now().plusDays(5))
+                        .preferredDurationMinutes(30)
+                        .priority(2)
+                        .status(MeetingStatus.PENDING)
+                        .build();
+                meetingRepository.save(m3);
+                log.info("Created Meeting: {} [PENDING]", m3.getSubject());
+            }
+
+            // 4. PENDING HIGH PRIORITY - Personal Consultation
+            if (student4 != null) {
+                Meeting m4 = Meeting.builder()
+                        .student(student4)
+                        .lecturer(lecturer1)
+                        .subject("Urgent: Academic Performance Concern")
+                        .meetingType(MeetingType.PERSONAL_CONSULTATION)
+                        .description("I'm struggling with multiple modules this semester and feeling overwhelmed. Need advice on managing workload and improving grades before exams.")
+                        .preferredDateTime(LocalDateTime.now().plusDays(1))
+                        .preferredDurationMinutes(30)
+                        .priority(4)
+                        .status(MeetingStatus.PENDING)
+                        .build();
+                meetingRepository.save(m4);
+                log.info("Created Meeting: {} [PENDING - URGENT]", m4.getSubject());
+            }
+
+            // 5. REJECTED meeting
+            if (student1 != null && lecturer2 != null) {
+                Meeting m5 = Meeting.builder()
+                        .student(student1)
+                        .lecturer(lecturer2)
+                        .subject("Research Internship Discussion")
+                        .meetingType(MeetingType.RESEARCH_DISCUSSION)
+                        .description("Interested in joining the AI research lab for a summer internship. Would like to discuss available projects.")
+                        .preferredDateTime(LocalDateTime.now().minusDays(3))
+                        .preferredDurationMinutes(30)
+                        .priority(2)
+                        .status(MeetingStatus.REJECTED)
+                        .lecturerResponse("Unfortunately I am fully booked for research internships this semester. Please check with Dr. Smith or apply again next semester.")
+                        .respondedAt(LocalDateTime.now().minusDays(2))
+                        .studentNotified(true)
+                        .build();
+                meetingRepository.save(m5);
+                log.info("Created Meeting: {} [REJECTED]", m5.getSubject());
+            }
+
+            // 6. CANCELLED meeting
+            if (student2 != null && lecturer2 != null) {
+                Meeting m6 = Meeting.builder()
+                        .student(student2)
+                        .lecturer(lecturer2)
+                        .subject("Dissertation Topic Brainstorming")
+                        .meetingType(MeetingType.ACADEMIC_GUIDANCE)
+                        .description("Would like to explore potential dissertation topics in the area of cybersecurity.")
+                        .preferredDateTime(LocalDateTime.now().minusDays(5))
+                        .preferredDurationMinutes(45)
+                        .priority(2)
+                        .status(MeetingStatus.CANCELLED)
+                        .scheduledStartTime(LocalDateTime.now().minusDays(2).withHour(11).withMinute(0))
+                        .scheduledEndTime(LocalDateTime.now().minusDays(2).withHour(11).withMinute(45))
+                        .isOnline(false)
+                        .location("Block B, Room 205")
+                        .lecturerResponse("Accepted. Let's discuss potential topics.")
+                        .respondedAt(LocalDateTime.now().minusDays(4))
+                        .cancellationReason("Student has a scheduling conflict with a mandatory lab session")
+                        .cancelledBy("STUDENT")
+                        .cancelledAt(LocalDateTime.now().minusDays(3))
+                        .studentNotified(true)
+                        .build();
+                meetingRepository.save(m6);
+                log.info("Created Meeting: {} [CANCELLED]", m6.getSubject());
+            }
+
+            // 7. COMPLETED meeting with lecturer2 - no follow-up
+            if (student3 != null && lecturer2 != null) {
+                Meeting m7 = Meeting.builder()
+                        .student(student3)
+                        .lecturer(lecturer2)
+                        .subject("Research Paper Review - Cloud Computing")
+                        .meetingType(MeetingType.RESEARCH_DISCUSSION)
+                        .description("Need feedback on my research paper draft about cloud computing security before submission to the IEEE conference.")
+                        .preferredDateTime(LocalDateTime.now().minusDays(15))
+                        .preferredDurationMinutes(60)
+                        .priority(3)
+                        .status(MeetingStatus.COMPLETED)
+                        .scheduledStartTime(LocalDateTime.now().minusDays(12).withHour(15).withMinute(0))
+                        .scheduledEndTime(LocalDateTime.now().minusDays(12).withHour(16).withMinute(0))
+                        .isOnline(true)
+                        .meetingLink("https://zoom.us/j/1234567890")
+                        .meetingPlatform("Zoom")
+                        .lecturerResponse("I'll review your draft before our meeting. Please share via email.")
+                        .respondedAt(LocalDateTime.now().minusDays(14))
+                        .actualStartTime(LocalDateTime.now().minusDays(12).withHour(15).withMinute(5))
+                        .actualEndTime(LocalDateTime.now().minusDays(12).withHour(15).withMinute(55))
+                        .meetingNotes("Reviewed paper structure and methodology section. Student needs to strengthen the literature review and add more comparison with existing solutions.")
+                        .followUpRequired(false)
+                        .studentRating(4)
+                        .studentFeedback("Very detailed feedback on my paper. Will make the suggested changes.")
+                        .feedbackSubmittedAt(LocalDateTime.now().minusDays(11))
+                        .studentNotified(true)
+                        .reminderSent(true)
+                        .finalReminderSent(true)
+                        .build();
+                meetingRepository.save(m7);
+                log.info("Created Meeting: {} [COMPLETED]", m7.getSubject());
+            }
+
+            // 8. RESCHEDULED meeting
+            if (student4 != null && lecturer2 != null) {
+                Meeting m8 = Meeting.builder()
+                        .student(student4)
+                        .lecturer(lecturer2)
+                        .subject("Group Project Progress Check")
+                        .meetingType(MeetingType.PROJECT_DISCUSSION)
+                        .description("Our SDGP group wants to show progress on the mobile app prototype. We have completed the UI designs and basic backend API.")
+                        .preferredDateTime(LocalDateTime.now().plusDays(1))
+                        .preferredDurationMinutes(45)
+                        .priority(2)
+                        .status(MeetingStatus.RESCHEDULED)
+                        .scheduledStartTime(LocalDateTime.now().plusDays(5).withHour(9).withMinute(30))
+                        .scheduledEndTime(LocalDateTime.now().plusDays(5).withHour(10).withMinute(15))
+                        .isOnline(false)
+                        .location("Block B, Room 205 - Ms. Williams' Office")
+                        .lecturerResponse("Rescheduled from original time due to faculty meeting: Happy to see your progress. Please prepare a demo.")
+                        .respondedAt(LocalDateTime.now().minusDays(1))
+                        .studentNotified(true)
+                        .build();
+                meetingRepository.save(m8);
+                log.info("Created Meeting: {} [RESCHEDULED]", m8.getSubject());
+            }
+
+            log.info("Meeting data initialization completed - created 8 sample meetings");
+        }
+    }
+}
     private void createLostAndFoundData() {
         if (itemCategoryRepository.count() == 0) {
             String[] categories = {
