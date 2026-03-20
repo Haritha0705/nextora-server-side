@@ -331,6 +331,17 @@ public interface MeetingService {
      */
     void permanentlyDeleteMeeting(Long meetingId);
 
+    // ==================== Attachment ====================
+
+    /**
+     * Update the attachment for a meeting.
+     *
+     * @param meetingId Meeting ID
+     * @param attachmentUrl S3 URL of the attachment
+     * @param attachmentName Original file name
+     */
+    void updateAttachment(Long meetingId, String attachmentUrl, String attachmentName);
+
     // ==================== Scheduled Tasks ====================
 
     /**

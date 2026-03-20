@@ -45,7 +45,8 @@ public enum UserRole {
                     Permission.CLUB_MEMBERSHIP_VIEW,
                     Permission.USER_RESET_PASSWORD,
                     Permission.MEETING_CREATE,
-                    Permission.MEETING_READ
+                    Permission.MEETING_READ,
+                    Permission.MEETING_CANCEL
             )),
 
 
@@ -101,7 +102,12 @@ public enum UserRole {
                     Permission.COMMUNICATION_SEND,
                     Permission.COMMUNICATION_BROADCAST,
                     Permission.LOST_FOUND_READ,
-                    Permission.USER_RESET_PASSWORD
+                    Permission.USER_RESET_PASSWORD,
+                    Permission.MEETING_MANAGE,
+                    Permission.MEETING_VIEW_CALENDAR,
+                    Permission.MEETING_ADD_NOTES,
+                    Permission.MEETING_AVAILABILITY,
+                    Permission.MEETING_READ
             ));
 
     private final String displayName;

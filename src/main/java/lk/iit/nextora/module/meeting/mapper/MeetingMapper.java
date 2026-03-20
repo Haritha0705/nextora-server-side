@@ -42,6 +42,7 @@ public interface MeetingMapper {
     @Mapping(target = "lecturerDepartment", source = "lecturer.department")
     @Mapping(target = "lecturerDesignation", source = "lecturer.designation")
     @Mapping(target = "lecturerOfficeLocation", source = "lecturer.officeLocation")
+    @Mapping(target = "lecturerProfileImageUrl", source = "lecturer.profileImageUrl")
     @Mapping(target = "meetingTypeDisplayName", expression = "java(meeting.getMeetingType().getDisplayName())")
     @Mapping(target = "statusDisplayName", expression = "java(meeting.getStatus().getDisplayName())")
     @Mapping(target = "priorityDisplayName", expression = "java(meeting.getPriorityDisplayName())")

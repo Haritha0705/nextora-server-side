@@ -593,6 +593,25 @@ public class MeetingServiceImpl implements MeetingService {
         meetingRepository.delete(meeting);
     }
 
+    // ==================== Attachment ====================
+
+    @Override
+    @Transactional
+    public void updateAttachment(Long meetingId, String attachmentUrl, String attachmentName) {
+        Long currentUserId = securityService.getCurrentUserId();
+        Meeting meeting = findMeetingById(meetingId);
+
+        if (!meeting.getStudent().getId().equals(currentUserId) &&
+            !meeting.getLecturer().getId().equals(currentUserId)) {
+            throw new UnauthorizedException("You do not have access to this meeting");
+        }
+
+        meeting.setAttachmentUrl(attachmentUrl);
+        meeting.setAttachmentName(attachmentName);
+        meetingRepository.save(meeting);
+        log.info("Attachment updated for meeting {}: {}", meetingId, attachmentName);
+    }
+
     // ==================== Scheduled Tasks ====================
 
     @Override

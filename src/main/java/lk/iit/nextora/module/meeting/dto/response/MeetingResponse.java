@@ -60,6 +60,7 @@ public class MeetingResponse {
     private String lecturerDepartment;
     private String lecturerDesignation;
     private String lecturerOfficeLocation;
+    private String lecturerProfileImageUrl;
 
     // ==================== Schedule Details (Set by Lecturer) ====================
 
