@@ -60,3 +60,9 @@ logging:
     root: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Firebase Configuration for Development
+# Set FIREBASE_ENABLED=true and provide serviceAccountKey.json to enable push notifications
+firebase:
+  enabled: ${FIREBASE_ENABLED:true}
+  config-path: ${FIREBASE_CONFIG_PATH:classpath:firebase/serviceAccountKey.json}

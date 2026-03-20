@@ -1,7 +1,9 @@
 package lk.iit.nextora.module.auth.mapper;
 
 import lk.iit.nextora.common.mapper.MapperConfiguration;
+import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
+import lk.iit.nextora.module.auth.dto.response.ForgotPasswordResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -60,29 +62,6 @@ public interface AuthMapper {
     }
 
     /**
-     * Build AuthResponse for pending verification (no tokens)
-     *
-     * @param user    the user entity
-     * @param message message for the user
-     * @return AuthResponse DTO without tokens
-     */
-    default AuthResponse toPendingVerificationResponse(BaseUser user, String message) {
-        AuthResponse response = new AuthResponse();
-        response.setUserId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setRole(user.getRole());
-        response.setUserType(user.getUserType());
-        response.setAccessToken(null);
-        response.setRefreshToken(null);
-        response.setExpiresIn(null);
-        response.setTokenType(null);
-        response.setMessage(message);
-        return response;
-    }
-
-    /**
      * Build AuthResponse for password change required (limited access token, no refresh token)
      *
      * @param user        the user entity
@@ -105,6 +84,23 @@ public interface AuthMapper {
         response.setMessage(message);
         response.setPasswordChangeRequired(true);
         return response;
+    }
+
+    // ==================== FORGOT PASSWORD MAPPERS ====================
+
+    /**
+     * Build ForgotPasswordResponse for successful password reset initiation
+     *
+     * @param user          the user entity
+     * @param expiryMinutes token expiry time in minutes
+     * @return ForgotPasswordResponse DTO
+     */
+    default ForgotPasswordResponse toForgotPasswordResponse(BaseUser user, int expiryMinutes) {
+        return ForgotPasswordResponse.builder()
+                .message("Password reset link sent to your email. Please check your inbox.")
+                .maskedEmail(StringUtils.maskEmail(user.getEmail()))
+                .expiryMinutes(expiryMinutes)
+                .build();
     }
 }
 

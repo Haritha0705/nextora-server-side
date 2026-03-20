@@ -2,7 +2,6 @@ package lk.iit.nextora.module.kuppi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
@@ -146,10 +145,10 @@ public class KuppiNoteController {
     }
 
     @DeleteMapping(ApiConstants.KUPPI_NOTE_BY_ID)
-    @Operation(summary = "Delete note", description = "Delete own note")
+    @Operation(summary = "Soft Delete note", description = "Delete own note")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:DELETE')")
-    public ApiResponse<Void> deleteNote(@PathVariable Long noteId) {
-        noteService.deleteNote(noteId);
+    public ApiResponse<Void> softDeleteNote(@PathVariable Long noteId) {
+        noteService.softDeleteNote(noteId);
         return ApiResponse.success("Note deleted successfully");
     }
 

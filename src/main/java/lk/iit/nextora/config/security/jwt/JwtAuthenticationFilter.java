@@ -51,6 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     if (jwtTokenProvider.isTokenValid(token, userDetails)) {
+                        log.info("User {} role: {}, authorities count: {}, has USER:CREATE: {}",
+                                username,
+                                userDetails instanceof lk.iit.nextora.module.auth.entity.BaseUser ?
+                                    ((lk.iit.nextora.module.auth.entity.BaseUser) userDetails).getRole() : "N/A",
+                                userDetails.getAuthorities().size(),
+                                userDetails.getAuthorities().stream()
+                                        .anyMatch(a -> a.getAuthority().equals("USER:CREATE")));
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

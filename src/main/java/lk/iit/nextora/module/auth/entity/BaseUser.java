@@ -46,8 +46,14 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     @Column(nullable = false, length = 50)
     private UserStatus status = UserStatus.ACTIVE;
 
-    @Column(length = 15)
+    @Column(length = 20)
     private String phoneNumber;
+
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
+    @Column(name = "profile_picture_key", length = 255)
+    private String profilePictureKey;
 
     /**
      * Number of consecutive failed login attempts.
