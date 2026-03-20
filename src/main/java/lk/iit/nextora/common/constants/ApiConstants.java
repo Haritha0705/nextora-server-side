@@ -13,6 +13,7 @@ public final class ApiConstants {
     public static final String API_BASE = "/api";
     public static final String API_VERSION = "/v1";
     public static final String API_V1 = API_BASE + API_VERSION;
+    public static final String ADMIN = API_V1 + "/admin";
 
     // Authentication endpoints
     public static final String AUTH = API_V1 + "/auth";
@@ -140,21 +141,21 @@ public final class ApiConstants {
     // ==================== Lost & Found Endpoints ====================
 
     // Base path for the Lost & Found module — same level as KUPPI = API_V1 + "/kuppi"
-    public static final String LOST_AND_FOUND         = API_V1 + "/lost-and-found";
+    public static final String LOST_AND_FOUND = API_V1 + "/lost-and-found";
 
     // Controller base paths
-    public static final String LOST_AND_FOUND_ITEMS   = LOST_AND_FOUND + "/items";
-    public static final String LOST_AND_FOUND_CLAIMS  = LOST_AND_FOUND + "/claims";
+    public static final String LOST_AND_FOUND_ITEMS = LOST_AND_FOUND + "/items";
+    public static final String LOST_AND_FOUND_CLAIMS = LOST_AND_FOUND + "/claims";
 
     // Sub-path constants — mirrors the KUPPI_MY / KUPPI_SEARCH / KUPPI_APPROVE pattern
-    public static final String LOST_AND_FOUND_MY      = "/my";
-    public static final String LOST_AND_FOUND_SEARCH  = "/search";
-    public static final String LOST_AND_FOUND_STATUS  = "/status/{status}";
+    public static final String LOST_AND_FOUND_MY = "/my";
+    public static final String LOST_AND_FOUND_SEARCH = "/search";
+    public static final String LOST_AND_FOUND_STATUS = "/status/{status}";
     public static final String LOST_AND_FOUND_APPROVE = "/approve";
-    public static final String LOST_AND_FOUND_REJECT  = "/reject";
+    public static final String LOST_AND_FOUND_REJECT = "/reject";
 
     // Admin endpoint — mirrors KUPPI_ADMIN = ADMIN + "/kuppi"
-    public static final String LOST_AND_FOUND_ADMIN   = API_V1 + "/admin/lost-and-found";
+    public static final String LOST_AND_FOUND_ADMIN = API_V1 + "/admin/lost-and-found";
 
 
     // ==================== Club & Voting Endpoints ====================
@@ -306,7 +307,7 @@ public final class ApiConstants {
 
     // Base meeting paths
     public static final String MEETINGS = API_V1 + "/meetings";
-    public static final String MEETING_ADMIN = ADMIN + "/meetings";
+    public static final String MEETING_ADMIN = "/api/v1/admin/meetings";
 
     // Common endpoints
     public static final String MEETING_BY_ID = "/{meetingId}";
@@ -349,23 +350,7 @@ public final class ApiConstants {
     public static final String BOARDINGHOUSE_HOUSES_PERMANENT = "/houses/{houseId}/permanent";
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    public static final String VOTING_ADMIN_CLUBS = ELECTION_ADMIN + "/clubs";
+    //    public static final String VOTING_ADMIN_CLUBS = ELECTION_ADMIN + "/clubs";
 //    public static final String VOTING_ADMIN_CLUB_BY_ID = VOTING_ADMIN_CLUBS + "/{clubId}";
 //    public static final String VOTING_ADMIN_MEMBERSHIPS = ELECTION_ADMIN + "/memberships";
 //    public static final String VOTING_ADMIN_MEMBERSHIP_FORCE_APPROVE = "/{membershipId}/force-approve";

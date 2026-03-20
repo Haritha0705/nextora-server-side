@@ -222,7 +222,7 @@ public enum Permission {
     MEETING_ADMIN_UPDATE("MEETING:ADMIN_UPDATE", "Admin update any meeting", "MEETING", "ADMIN_UPDATE", PermissionCategory.MEETING_MANAGEMENT),
     MEETING_ADMIN_CANCEL("MEETING:ADMIN_CANCEL", "Admin force cancel any meeting", "MEETING", "ADMIN_CANCEL", PermissionCategory.MEETING_MANAGEMENT),
     MEETING_PERMANENT_DELETE("MEETING:PERMANENT_DELETE", "Permanently delete meetings", "MEETING", "PERMANENT_DELETE", PermissionCategory.MEETING_MANAGEMENT),
-    MEETING_VIEW_STATISTICS("MEETING:VIEW_STATISTICS", "View meeting statistics", "MEETING", "VIEW_STATISTICS", PermissionCategory.MEETING_MANAGEMENT);
+    MEETING_VIEW_STATISTICS("MEETING:VIEW_STATISTICS", "View meeting statistics", "MEETING", "VIEW_STATISTICS", PermissionCategory.MEETING_MANAGEMENT),
     LOST_FOUND_CLAIM("LOST_FOUND:CLAIM", "Submit claims for lost/found items", "LOST_FOUND", "CLAIM", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_ADMIN_VIEW("LOST_FOUND:ADMIN_VIEW", "Admin view all claims", "LOST_FOUND", "ADMIN_VIEW", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_ADMIN_UPDATE("LOST_FOUND:ADMIN_UPDATE", "Admin update claims", "LOST_FOUND", "ADMIN_UPDATE", PermissionCategory.LOST_AND_FOUND),
@@ -261,7 +261,7 @@ public enum Permission {
         COMMUNICATION("Communication"),
         LOST_AND_FOUND("Lost and Found"),
         VOTING_MANAGEMENT("Voting Management"),
-        MEETING_MANAGEMENT("Meeting Management");
+        MEETING_MANAGEMENT("Meeting Management"),
         PUSH_NOTIFICATION("Push Notification"),
         BOARDING_HOUSE("Boarding House");
 

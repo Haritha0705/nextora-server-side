@@ -6,7 +6,6 @@ import lk.iit.nextora.common.enums.*;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.repository.*;
 import lk.iit.nextora.module.boardinghouse.entity.BoardingHouse;
-import lk.iit.nextora.module.boardinghouse.entity.BoardingHouseImage;
 import lk.iit.nextora.module.boardinghouse.repository.BoardingHouseRepository;
 import lk.iit.nextora.module.club.entity.Club;
 import lk.iit.nextora.module.club.entity.ClubMembership;
@@ -1105,7 +1104,7 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Meeting data initialization completed - created 8 sample meetings");
         }
     }
-}
+
     private void createLostAndFoundData() {
         if (itemCategoryRepository.count() == 0) {
             String[] categories = {

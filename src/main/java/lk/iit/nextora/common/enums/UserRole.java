@@ -48,7 +48,7 @@ public enum UserRole {
                     Permission.USER_RESET_PASSWORD,
                     Permission.MEETING_CREATE,
                     Permission.MEETING_READ,
-                    Permission.MEETING_CANCEL
+                    Permission.MEETING_CANCEL,
                     // Boarding House - students can browse listings
                     Permission.BOARDING_HOUSE_READ
             )),
@@ -125,7 +125,6 @@ public enum UserRole {
                     Permission.MEETING_ADD_NOTES,
                     Permission.MEETING_AVAILABILITY,
                     Permission.MEETING_READ
-                    Permission.LOST_FOUND_READ
             ));
 
     private final String displayName;
