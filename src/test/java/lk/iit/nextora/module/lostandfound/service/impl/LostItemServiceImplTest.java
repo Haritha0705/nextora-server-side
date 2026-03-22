@@ -3,11 +3,9 @@ package lk.iit.nextora.module.lostandfound.service.impl;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.config.security.SecurityService;
-import lk.iit.nextora.module.auth.entity.BaseUser;
+import lk.iit.nextora.module.auth.entity.Student;
 import lk.iit.nextora.module.lostandfound.dto.request.CreateLostItemRequest;
-import lk.iit.nextora.module.lostandfound.dto.request.SearchItemRequest;
 import lk.iit.nextora.module.lostandfound.dto.request.UpdateItemRequest;
-import lk.iit.nextora.module.lostandfound.dto.response.ItemListResponse;
 import lk.iit.nextora.module.lostandfound.dto.response.ItemResponse;
 import lk.iit.nextora.module.lostandfound.entity.ItemCategory;
 import lk.iit.nextora.module.lostandfound.entity.LostItem;
@@ -21,13 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,7 +69,7 @@ class LostItemServiceImplTest {
                     .dateLost(LocalDateTime.now().minusDays(1))
                     .build();
 
-            BaseUser user = new BaseUser();
+            Student user = new Student();
             user.setId(userId);
             user.setFirstName("John");
             user.setLastName("Doe");
@@ -136,7 +129,7 @@ class LostItemServiceImplTest {
         @DisplayName("Should throw exception when category not found")
         void createLostItem_categoryNotFound_throws() {
             // Given
-            BaseUser user = new BaseUser();
+            Student user = new Student();
             user.setId(1L);
             user.setFirstName("John");
             user.setLastName("Doe");

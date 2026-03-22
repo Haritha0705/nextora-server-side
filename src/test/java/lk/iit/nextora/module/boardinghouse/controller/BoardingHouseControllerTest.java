@@ -159,12 +159,12 @@ class BoardingHouseControllerTest {
     // ============================================================
 
     @Nested
-    @DisplayName("POST /api/v1/boarding-houses/filter (filter houses)")
+    @DisplayName("GET /api/v1/boarding-houses/filter (filter houses)")
     class FilterTests {
 
         @Test
         @DisplayName("Should filter boarding houses by criteria")
-        void filterBoardingHouses_success() {
+        void filter_success() {
             // Given
             BoardingHouseFilterRequest filterRequest = BoardingHouseFilterRequest.builder()
                     .city("Colombo")
@@ -173,7 +173,6 @@ class BoardingHouseControllerTest {
                     .genderPreference(GenderPreference.FEMALE)
                     .build();
 
-            Pageable pageable = PageRequest.of(0, 10);
             List<BoardingHouseResponse> filteredHouses = List.of(
                     BoardingHouseResponse.builder().id(1L).title("House 1").city("Colombo").price(new BigDecimal("45000")).build()
             );
@@ -185,37 +184,39 @@ class BoardingHouseControllerTest {
                     .pageSize(10)
                     .build();
 
-            when(boardingHouseService.filterBoardingHouses(eq(filterRequest), any(Pageable.class)))
+            when(boardingHouseService.filter(eq(filterRequest)))
                     .thenReturn(pagedResponse);
 
             // When
-            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.filterBoardingHouses(filterRequest, 0, 10);
+            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.filter(
+                    "Colombo", null, GenderPreference.FEMALE,
+                    new BigDecimal("30000"), new BigDecimal("60000"), 0, 10, "createdAt", "DESC");
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().getContent()).hasSize(1);
-            verify(boardingHouseService, times(1)).filterBoardingHouses(eq(filterRequest), any(Pageable.class));
+            verify(boardingHouseService, times(1)).filter(any(BoardingHouseFilterRequest.class));
         }
 
         @Test
         @DisplayName("Should return empty result when no houses match filter criteria")
-        void filterBoardingHouses_noMatch() {
+        void filter_noMatch() {
             // Given
             BoardingHouseFilterRequest filterRequest = BoardingHouseFilterRequest.builder()
                     .city("NonExistent")
                     .build();
 
-            Pageable pageable = PageRequest.of(0, 10);
             PagedResponse<BoardingHouseResponse> emptyResponse = PagedResponse.<BoardingHouseResponse>builder()
                     .content(List.of())
                     .totalElements(0L)
                     .build();
 
-            when(boardingHouseService.filterBoardingHouses(eq(filterRequest), any(Pageable.class)))
+            when(boardingHouseService.filter(any(BoardingHouseFilterRequest.class)))
                     .thenReturn(emptyResponse);
 
             // When
-            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.filterBoardingHouses(filterRequest, 0, 10);
+            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.filter(
+                    "NonExistent", null, null, null, null, 0, 10, "createdAt", "DESC");
 
             // Then
             assertThat(response.getData().isEmpty()).isTrue();
@@ -223,76 +224,73 @@ class BoardingHouseControllerTest {
     }
 
     // ============================================================
-    // GET FAVORITES TESTS
+    // FILTER BY CITY TESTS
     // ============================================================
 
     @Nested
-    @DisplayName("GET /api/v1/boarding-houses/favorites (get favorites)")
-    class GetFavoritesTests {
+    @DisplayName("GET /api/v1/boarding-houses/city (filter by city)")
+    class FilterByCityTests {
 
         @Test
-        @DisplayName("Should return user's favorite boarding houses")
-        void getFavorites_success() {
+        @DisplayName("Should return boarding houses filtered by city")
+        void filterByCity_success() {
             // Given
+            String city = "Colombo";
             Pageable pageable = PageRequest.of(0, 10);
-            List<BoardingHouseResponse> favorites = List.of(
-                    BoardingHouseResponse.builder().id(1L).title("Favorite 1").build(),
-                    BoardingHouseResponse.builder().id(2L).title("Favorite 2").build()
+            List<BoardingHouseResponse> results = List.of(
+                    BoardingHouseResponse.builder().id(1L).title("City House 1").city("Colombo").build(),
+                    BoardingHouseResponse.builder().id(2L).title("City House 2").city("Colombo").build()
             );
             
             PagedResponse<BoardingHouseResponse> pagedResponse = PagedResponse.<BoardingHouseResponse>builder()
-                    .content(favorites)
+                    .content(results)
                     .totalElements(2L)
                     .build();
 
-            when(boardingHouseService.getFavorites(any(Pageable.class))).thenReturn(pagedResponse);
+            when(boardingHouseService.filterByCity(eq(city), any(Pageable.class))).thenReturn(pagedResponse);
 
             // When
-            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.getFavorites(0, 10);
+            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.filterByCity(city, 0, 10);
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().getContent()).hasSize(2);
-            verify(boardingHouseService, times(1)).getFavorites(any(Pageable.class));
+            verify(boardingHouseService, times(1)).filterByCity(eq(city), any(Pageable.class));
         }
     }
 
     // ============================================================
-    // ADD/REMOVE FAVORITE TESTS
+    // FILTER BY DISTRICT TESTS
     // ============================================================
 
     @Nested
-    @DisplayName("POST/DELETE /api/v1/boarding-houses/{id}/favorite (favorite operations)")
-    class FavoriteOperationTests {
+    @DisplayName("GET /api/v1/boarding-houses/district (filter by district)")
+    class FilterByDistrictTests {
 
         @Test
-        @DisplayName("Should add boarding house to favorites")
-        void addFavorite_success() {
+        @DisplayName("Should return boarding houses filtered by district")
+        void filterByDistrict_success() {
             // Given
-            Long houseId = 1L;
-            doNothing().when(boardingHouseService).addFavorite(houseId);
+            String district = "Colombo";
+            Pageable pageable = PageRequest.of(0, 10);
+            List<BoardingHouseResponse> results = List.of(
+                    BoardingHouseResponse.builder().id(1L).title("District House").district(district).build()
+            );
+            
+            PagedResponse<BoardingHouseResponse> pagedResponse = PagedResponse.<BoardingHouseResponse>builder()
+                    .content(results)
+                    .totalElements(1L)
+                    .build();
+
+            when(boardingHouseService.filterByDistrict(eq(district), any(Pageable.class))).thenReturn(pagedResponse);
 
             // When
-            ApiResponse<Void> response = controller.addFavorite(houseId);
+            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.filterByDistrict(district, 0, 10);
 
             // Then
             assertThat(response).isNotNull();
-            verify(boardingHouseService, times(1)).addFavorite(houseId);
-        }
-
-        @Test
-        @DisplayName("Should remove boarding house from favorites")
-        void removeFavorite_success() {
-            // Given
-            Long houseId = 1L;
-            doNothing().when(boardingHouseService).removeFavorite(houseId);
-
-            // When
-            ApiResponse<Void> response = controller.removeFavorite(houseId);
-
-            // Then
-            assertThat(response).isNotNull();
-            verify(boardingHouseService, times(1)).removeFavorite(houseId);
+            assertThat(response.getData().getContent()).hasSize(1);
+            verify(boardingHouseService, times(1)).filterByDistrict(eq(district), any(Pageable.class));
         }
     }
 
@@ -306,7 +304,7 @@ class BoardingHouseControllerTest {
 
         @Test
         @DisplayName("Should search boarding houses by keyword")
-        void searchBoardingHouses_success() {
+        void search_success() {
             // Given
             String keyword = "premium";
             Pageable pageable = PageRequest.of(0, 10);
@@ -319,16 +317,16 @@ class BoardingHouseControllerTest {
                     .totalElements(1L)
                     .build();
 
-            when(boardingHouseService.searchBoardingHouses(eq(keyword), any(Pageable.class)))
+            when(boardingHouseService.search(eq(keyword), any(Pageable.class)))
                     .thenReturn(pagedResponse);
 
             // When
-            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.searchBoardingHouses(keyword, 0, 10);
+            ApiResponse<PagedResponse<BoardingHouseResponse>> response = controller.search(keyword, 0, 10);
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().getContent()).hasSize(1);
-            verify(boardingHouseService, times(1)).searchBoardingHouses(eq(keyword), any(Pageable.class));
+            verify(boardingHouseService, times(1)).search(eq(keyword), any(Pageable.class));
         }
     }
 }

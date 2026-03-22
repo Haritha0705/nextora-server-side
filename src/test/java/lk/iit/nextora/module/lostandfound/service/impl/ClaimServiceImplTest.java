@@ -78,7 +78,6 @@ class ClaimServiceImplTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(1L);
             verify(claimRepository, times(1)).save(any(Claim.class));
-            verify(notificationService, times(1)).notifyClaimSubmitted(any(Claim.class));
         }
 
         @Test

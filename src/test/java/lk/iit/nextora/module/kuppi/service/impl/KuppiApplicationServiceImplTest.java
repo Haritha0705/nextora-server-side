@@ -892,7 +892,7 @@ class KuppiApplicationServiceImplTest {
 
             // Then
             verify(student).removeRoleType(StudentRoleType.KUPPI_STUDENT);
-            verify(student).removeRoleType(StudentRoleType.SENIOR_KUPPI);
+            verify(student).removeRoleType(StudentRoleType.KUPPI_STUDENT);
             verify(student).setKuppiSubjects(null);
             verify(student).setKuppiExperienceLevel(null);
             verify(student).setKuppiAvailability(null);

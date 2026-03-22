@@ -10,8 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -27,12 +25,12 @@ class UndergraduateControllerTest {
     @InjectMocks private UndergraduateController controller;
 
     @Nested
-    @DisplayName("getAllUndergraduatePrograms")
+    @DisplayName("getAll")
     class GetAllUndergraduateProgramsTests {
 
         @Test
         @DisplayName("Should return all undergraduate programs")
-        void getAllUndergraduatePrograms_success() {
+        void getAll_success() {
             ProgramResponse program = ProgramResponse.builder()
                     .id(1L)
                     .programCode("CS101")
@@ -42,36 +40,33 @@ class UndergraduateControllerTest {
             when(intranetService.getAllUndergraduatePrograms())
                     .thenReturn(List.of(program));
 
-            ResponseEntity<ApiResponse<List<ProgramResponse>>> response = 
-                    controller.getAllUndergraduatePrograms();
+            ApiResponse<List<ProgramResponse>> response = controller.getAll();
 
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().getData()).hasSize(1);
+            assertThat(response).isNotNull();
+            assertThat(response.getData()).hasSize(1);
             verify(intranetService).getAllUndergraduatePrograms();
         }
 
         @Test
         @DisplayName("Should return empty list when no programs exist")
-        void getAllUndergraduatePrograms_empty() {
+        void getAll_empty() {
             when(intranetService.getAllUndergraduatePrograms())
                     .thenReturn(List.of());
 
-            ResponseEntity<ApiResponse<List<ProgramResponse>>> response = 
-                    controller.getAllUndergraduatePrograms();
+            ApiResponse<List<ProgramResponse>> response = controller.getAll();
 
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody().getData()).isEmpty();
+            assertThat(response).isNotNull();
+            assertThat(response.getData()).isEmpty();
         }
     }
 
     @Nested
-    @DisplayName("getUndergraduateProgramBySlug")
+    @DisplayName("getBySlug")
     class GetUndergraduateProgramBySlugTests {
 
         @Test
         @DisplayName("Should get undergraduate program by slug")
-        void getUndergraduateProgramBySlug_success() {
+        void getBySlug_success() {
             String slug = "bsc-computer-science";
             ProgramResponse program = ProgramResponse.builder()
                     .id(1L)
@@ -82,23 +77,22 @@ class UndergraduateControllerTest {
             when(intranetService.getUndergraduateProgramBySlug(slug))
                     .thenReturn(program);
 
-            ResponseEntity<ApiResponse<ProgramResponse>> response = 
-                    controller.getUndergraduateProgramBySlug(slug);
+            ApiResponse<ProgramResponse> response = controller.getBySlug(slug);
 
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody().getData()).isNotNull();
-            assertThat(response.getBody().getData().getProgramSlug()).isEqualTo(slug);
+            assertThat(response).isNotNull();
+            assertThat(response.getData()).isNotNull();
+            assertThat(response.getData().getProgramSlug()).isEqualTo(slug);
             verify(intranetService).getUndergraduateProgramBySlug(slug);
         }
 
         @Test
         @DisplayName("Should propagate exception when program not found")
-        void getUndergraduateProgramBySlug_notFound() {
+        void getBySlug_notFound() {
             String slug = "nonexistent";
             when(intranetService.getUndergraduateProgramBySlug(slug))
                     .thenThrow(new RuntimeException("Program not found"));
 
-            assertThatThrownBy(() -> controller.getUndergraduateProgramBySlug(slug))
+            assertThatThrownBy(() -> controller.getBySlug(slug))
                     .isInstanceOf(RuntimeException.class);
         }
     }

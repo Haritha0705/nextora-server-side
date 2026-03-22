@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -138,20 +137,20 @@ class EventControllerTest {
         @DisplayName("Should perform advanced search")
         void advancedSearch_success() {
             EventSearchRequest request = EventSearchRequest.builder()
-                    .keyword("conference").eventType(EventType.CONFERENCE).build();
+                    .keyword("conference").eventType(EventType.ACADEMIC).build();
 
             List<EventResponse> results = List.of(
-                    EventResponse.builder().id(1L).title("Tech Conference").eventType(EventType.CONFERENCE).build()
+                    EventResponse.builder().id(1L).title("Tech Conference").eventType(EventType.ACADEMIC).build()
             );
             PagedResponse<EventResponse> response = PagedResponse.<EventResponse>builder()
                     .content(results).totalElements(1L).build();
 
-            when(eventService.advancedSearch(any(EventSearchRequest.class), any(Pageable.class))).thenReturn(response);
+            when(eventService.advancedSearch(any(EventSearchRequest.class))).thenReturn(response);
 
             ApiResponse<PagedResponse<EventResponse>> result = controller.advancedSearch(request);
 
             assertThat(result.getData().getContent()).hasSize(1);
-            verify(eventService, times(1)).advancedSearch(any(EventSearchRequest.class), any(Pageable.class));
+            verify(eventService, times(1)).advancedSearch(any(EventSearchRequest.class));
         }
     }
 
@@ -165,18 +164,18 @@ class EventControllerTest {
             LocalDateTime start = LocalDateTime.now().plusDays(7);
             CreateEventRequest request = CreateEventRequest.builder()
                     .title("Annual Tech Conference").startAt(start).endAt(start.plusHours(2))
-                    .eventType(EventType.CONFERENCE).build();
+                    .eventType(EventType.ACADEMIC).build();
 
             EventResponse response = EventResponse.builder()
                     .id(1L).title("Annual Tech Conference").status(EventStatus.DRAFT).build();
 
-            when(eventService.createEvent(any(CreateEventRequest.class))).thenReturn(response);
+            when(eventService.createEvent(any(CreateEventRequest.class), any())).thenReturn(response);
 
-            ApiResponse<EventResponse> result = controller.createEvent(request);
+            ApiResponse<EventResponse> result = controller.createEvent(request, null);
 
             assertThat(result.getData().getId()).isEqualTo(1L);
             assertThat(result.getData().getStatus()).isEqualTo(EventStatus.DRAFT);
-            verify(eventService, times(1)).createEvent(any(CreateEventRequest.class));
+            verify(eventService, times(1)).createEvent(any(CreateEventRequest.class), any());
         }
     }
 
@@ -194,12 +193,12 @@ class EventControllerTest {
             EventResponse response = EventResponse.builder()
                     .id(eventId).title("Updated Title").build();
 
-            when(eventService.updateEvent(eq(eventId), any(UpdateEventRequest.class))).thenReturn(response);
+            when(eventService.updateEvent(eq(eventId), any(UpdateEventRequest.class), any())).thenReturn(response);
 
-            ApiResponse<EventResponse> result = controller.updateEvent(eventId, request);
+            ApiResponse<EventResponse> result = controller.updateEvent(eventId, request, null);
 
             assertThat(result.getData().getTitle()).isEqualTo("Updated Title");
-            verify(eventService, times(1)).updateEvent(eq(eventId), any(UpdateEventRequest.class));
+            verify(eventService, times(1)).updateEvent(eq(eventId), any(UpdateEventRequest.class), any());
         }
     }
 
@@ -244,22 +243,6 @@ class EventControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("deleteEvent")
-    class DeleteEventTests {
-
-        @Test
-        @DisplayName("Should delete event successfully")
-        void deleteEvent_success() {
-            Long eventId = 1L;
-            doNothing().when(eventService).deleteEvent(eventId);
-
-            ApiResponse<Void> response = controller.deleteEvent(eventId);
-
-            assertThat(response).isNotNull();
-            verify(eventService, times(1)).deleteEvent(eventId);
-        }
-    }
 
     @Nested
     @DisplayName("registerForEvent")
@@ -269,9 +252,9 @@ class EventControllerTest {
         @DisplayName("Should register for event successfully")
         void registerForEvent_success() {
             Long eventId = 1L;
-            doNothing().when(eventService).registerForEvent(eventId);
+            when(eventService.registerForEvent(eventId)).thenReturn(null);
 
-            ApiResponse<Void> response = controller.registerForEvent(eventId);
+            ApiResponse<?> response = controller.registerForEvent(eventId);
 
             assertThat(response).isNotNull();
             verify(eventService, times(1)).registerForEvent(eventId);

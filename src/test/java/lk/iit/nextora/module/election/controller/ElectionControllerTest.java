@@ -130,12 +130,12 @@ class ElectionControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/v1/elections (get all elections)")
-    class GetAllElectionsTests {
+    @DisplayName("GET /api/v1/elections (get upcoming elections)")
+    class GetUpcomingElectionsTests {
 
         @Test
-        @DisplayName("Should return paginated elections")
-        void getAllElections_returnsPaginatedResult() {
+        @DisplayName("Should return paginated upcoming elections")
+        void getUpcomingElections_success() {
             // Given
             PagedResponse<ElectionResponse> pagedResponse = PagedResponse.<ElectionResponse>builder()
                     .content(List.of(
@@ -151,22 +151,22 @@ class ElectionControllerTest {
                     .empty(false)
                     .build();
 
-            when(electionService.getAllElections(any(Pageable.class)))
+            when(electionService.getUpcomingElections(any(Pageable.class)))
                     .thenReturn(pagedResponse);
 
             // When
-            ApiResponse<PagedResponse<ElectionResponse>> response = controller.getAllElections(0, 10, "title", "ASC");
+            ApiResponse<PagedResponse<ElectionResponse>> response = controller.getUpcomingElections(0, 10);
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().getContent()).hasSize(2);
             assertThat(response.getData().getTotalElements()).isEqualTo(2L);
-            verify(electionService, times(1)).getAllElections(any(Pageable.class));
+            verify(electionService, times(1)).getUpcomingElections(any(Pageable.class));
         }
 
         @Test
         @DisplayName("Should return empty page when no elections exist")
-        void getAllElections_returnsEmptyResult() {
+        void getUpcomingElections_empty() {
             // Given
             PagedResponse<ElectionResponse> emptyResponse = PagedResponse.<ElectionResponse>builder()
                     .content(List.of())
@@ -179,16 +179,16 @@ class ElectionControllerTest {
                     .empty(true)
                     .build();
 
-            when(electionService.getAllElections(any(Pageable.class)))
+            when(electionService.getUpcomingElections(any(Pageable.class)))
                     .thenReturn(emptyResponse);
 
             // When
-            ApiResponse<PagedResponse<ElectionResponse>> response = controller.getAllElections(0, 10, "title", "ASC");
+            ApiResponse<PagedResponse<ElectionResponse>> response = controller.getUpcomingElections(0, 10);
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().isEmpty()).isTrue();
-            verify(electionService, times(1)).getAllElections(any(Pageable.class));
+            verify(electionService, times(1)).getUpcomingElections(any(Pageable.class));
         }
     }
 
@@ -220,7 +220,7 @@ class ElectionControllerTest {
                     .thenReturn(pagedResponse);
 
             // When
-            ApiResponse<PagedResponse<ElectionResponse>> response = controller.getElectionsByClub(clubId, 0, 10);
+            ApiResponse<PagedResponse<ElectionResponse>> response = controller.getElectionsByClub(clubId, 0, 10, "createdAt", "DESC");
 
             // Then
             assertThat(response).isNotNull();
@@ -235,17 +235,16 @@ class ElectionControllerTest {
     // ============================================================
 
     @Nested
-    @DisplayName("POST /api/v1/elections/{electionId}/candidates (nominate candidate)")
+    @DisplayName("POST /api/v1/elections/{electionId}/nominate-self (nominate self as candidate)")
     class NominateCandidateTests {
 
         @Test
-        @DisplayName("Should nominate candidate successfully")
-        void nominateCandidate_success() {
+        @DisplayName("Should nominate self as candidate successfully")
+        void nominateSelf_success() {
             // Given
             Long electionId = 1L;
-            NominateCandidateRequest request = NominateCandidateRequest.builder()
-                    .studentId(1L)
-                    .position("PRESIDENT")
+            NominateCandidateRequest serviceRequest = NominateCandidateRequest.builder()
+                    .electionId(electionId)
                     .manifesto("I will lead the club to success")
                     .build();
 
@@ -254,20 +253,21 @@ class ElectionControllerTest {
                     .electionId(electionId)
                     .studentId(1L)
                     .studentName("John Doe")
-                    .position("PRESIDENT")
-                    .voteCount(0L)
+                    .manifesto("I will lead the club to success")
+                    .voteCount(0)
                     .build();
 
-            when(electionService.nominateCandidate(eq(electionId), any(NominateCandidateRequest.class)))
+            when(electionService.nominateSelf(any(NominateCandidateRequest.class), any()))
                     .thenReturn(expectedResponse);
 
             // When
-            ApiResponse<CandidateResponse> response = controller.nominateCandidate(electionId, request);
+            ApiResponse<CandidateResponse> response = controller.nominateSelf(
+                    electionId, "I will lead the club to success", null, null, null, null);
 
             // Then
             assertThat(response).isNotNull();
-            assertThat(response.getData().getPosition()).isEqualTo("PRESIDENT");
-            verify(electionService, times(1)).nominateCandidate(eq(electionId), any(NominateCandidateRequest.class));
+            assertThat(response.getData().getStudentName()).isEqualTo("John Doe");
+            verify(electionService, times(1)).nominateSelf(any(NominateCandidateRequest.class), any());
         }
     }
 
@@ -283,27 +283,28 @@ class ElectionControllerTest {
         @DisplayName("Should cast vote successfully")
         void castVote_success() {
             // Given
-            Long electionId = 1L;
             CastVoteRequest request = CastVoteRequest.builder()
+                    .electionId(1L)
                     .candidateId(1L)
                     .build();
 
             VoteResponse expectedResponse = VoteResponse.builder()
-                    .id(1L)
-                    .electionId(electionId)
+                    .electionId(1L)
                     .candidateId(1L)
+                    .candidateName("John Doe")
+                    .message("Vote cast successfully")
                     .build();
 
-            when(electionService.castVote(eq(electionId), any(CastVoteRequest.class)))
+            when(electionService.castVote(any(CastVoteRequest.class), anyString(), anyString()))
                     .thenReturn(expectedResponse);
 
             // When
-            ApiResponse<VoteResponse> response = controller.castVote(electionId, request, null);
+            ApiResponse<VoteResponse> response = controller.castVote(request, null);
 
             // Then
             assertThat(response).isNotNull();
-            assertThat(response.getData().getElectionId()).isEqualTo(electionId);
-            verify(electionService, times(1)).castVote(eq(electionId), any(CastVoteRequest.class));
+            assertThat(response.getData().getElectionId()).isEqualTo(1L);
+            verify(electionService, times(1)).castVote(any(CastVoteRequest.class), anyString(), anyString());
         }
     }
 
@@ -323,9 +324,7 @@ class ElectionControllerTest {
             ElectionResultsResponse expectedResponse = ElectionResultsResponse.builder()
                     .electionId(electionId)
                     .electionTitle("President Election 2026")
-                    .totalVotes(100L)
-                    .winner("John Doe")
-                    .winnerVotes(60L)
+                    .totalVotes(100)
                     .build();
 
             when(electionService.getElectionResults(electionId))
@@ -336,8 +335,7 @@ class ElectionControllerTest {
 
             // Then
             assertThat(response).isNotNull();
-            assertThat(response.getData().getWinner()).isEqualTo("John Doe");
-            assertThat(response.getData().getWinnerVotes()).isEqualTo(60L);
+            assertThat(response.getData().getTotalVotes()).isEqualTo(100);
             verify(electionService, times(1)).getElectionResults(electionId);
         }
     }
@@ -357,8 +355,8 @@ class ElectionControllerTest {
             Long electionId = 1L;
             PagedResponse<CandidateResponse> pagedResponse = PagedResponse.<CandidateResponse>builder()
                     .content(List.of(
-                            CandidateResponse.builder().id(1L).electionId(electionId).studentName("John Doe").voteCount(60L).build(),
-                            CandidateResponse.builder().id(2L).electionId(electionId).studentName("Jane Smith").voteCount(40L).build()
+                            CandidateResponse.builder().id(1L).electionId(electionId).studentName("John Doe").voteCount(60).build(),
+                            CandidateResponse.builder().id(2L).electionId(electionId).studentName("Jane Smith").voteCount(40).build()
                     ))
                     .totalElements(2L)
                     .pageNumber(0)

@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -261,32 +260,28 @@ class ElectionAdminControllerTest {
     // ============================================================
 
     @Nested
-    @DisplayName("GET /api/v1/admin/elections/{electionId}/statistics (get voting statistics)")
+    @DisplayName("GET /api/v1/admin/elections/statistics (get platform voting statistics)")
     class GetVotingStatisticsTests {
 
         @Test
-        @DisplayName("Should return voting statistics successfully")
-        void getVotingStatistics_success() {
+        @DisplayName("Should return platform voting statistics successfully")
+        void getPlatformStatistics_success() {
             // Given
-            Long electionId = 1L;
             VotingStatisticsResponse expectedResponse = VotingStatisticsResponse.builder()
-                    .electionId(electionId)
-                    .totalEligibleVoters(100L)
                     .totalVotesCast(85L)
-                    .participationRate(85.0)
+                    .totalElections(10L)
                     .build();
 
-            when(electionService.getVotingStatistics(electionId))
+            when(electionService.getPlatformStatistics())
                     .thenReturn(expectedResponse);
 
             // When
-            ApiResponse<VotingStatisticsResponse> response = controller.getVotingStatistics(electionId);
+            ApiResponse<VotingStatisticsResponse> response = controller.getPlatformStatistics();
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().getTotalVotesCast()).isEqualTo(85L);
-            assertThat(response.getData().getParticipationRate()).isEqualTo(85.0);
-            verify(electionService, times(1)).getVotingStatistics(electionId);
+            verify(electionService, times(1)).getPlatformStatistics();
         }
     }
 
@@ -300,14 +295,14 @@ class ElectionAdminControllerTest {
 
         @Test
         @DisplayName("Should return all candidates for election")
-        void getCandidatesAdmin_success() {
+        void getAllCandidates_success() {
             // Given
             Long electionId = 1L;
             PagedResponse<CandidateResponse> pagedResponse = PagedResponse.<CandidateResponse>builder()
                     .content(List.of(
-                            CandidateResponse.builder().id(1L).electionId(electionId).studentName("John Doe").voteCount(60L).status("APPROVED").build(),
-                            CandidateResponse.builder().id(2L).electionId(electionId).studentName("Jane Smith").voteCount(40L).status("APPROVED").build(),
-                            CandidateResponse.builder().id(3L).electionId(electionId).studentName("Bob Johnson").voteCount(0L).status("PENDING").build()
+                            CandidateResponse.builder().id(1L).electionId(electionId).studentName("John Doe").voteCount(60).build(),
+                            CandidateResponse.builder().id(2L).electionId(electionId).studentName("Jane Smith").voteCount(40).build(),
+                            CandidateResponse.builder().id(3L).electionId(electionId).studentName("Bob Johnson").voteCount(0).build()
                     ))
                     .totalElements(3L)
                     .pageNumber(0)
@@ -318,16 +313,16 @@ class ElectionAdminControllerTest {
                     .empty(false)
                     .build();
 
-            when(electionService.getCandidatesAdmin(eq(electionId), any(Pageable.class)))
+            when(electionService.getAllCandidatesAdmin(eq(electionId), any(Pageable.class)))
                     .thenReturn(pagedResponse);
 
             // When
-            ApiResponse<PagedResponse<CandidateResponse>> response = controller.getCandidatesAdmin(electionId, 0, 10);
+            ApiResponse<PagedResponse<CandidateResponse>> response = controller.getAllCandidates(electionId, 0, 10);
 
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getData().getContent()).hasSize(3);
-            verify(electionService, times(1)).getCandidatesAdmin(eq(electionId), any(Pageable.class));
+            verify(electionService, times(1)).getAllCandidatesAdmin(eq(electionId), any(Pageable.class));
         }
     }
 }
