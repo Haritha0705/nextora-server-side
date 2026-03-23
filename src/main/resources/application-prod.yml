@@ -5,11 +5,10 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    # AWS RDS PostgreSQL Configuration
-    # Replace the following with your actual RDS endpoint and credentials
-    url: jdbc:postgresql://${RDS_ENDPOINT:database-2.cchqm8mywb1x.us-east-1.rds.amazonaws.com}:5432/${RDS_DB_NAME:postgres}?sslmode=verify-full&sslrootcert=${RDS_SSL_CERT_PATH:./global-bundle.pem}
-    username: ${RDS_USERNAME:postgres}
-    password: ${RDS_PASSWORD:}
+    url: jdbc:postgresql://${RDS_HOST}:5432/${RDS_DB_NAME}?sslmode=require&sslrootcert=${RDS_SSL_CERT}
+    username: ${RDS_USERNAME}
+    password: ${RDS_PASSWORD}
+
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -18,15 +17,58 @@ spring:
       max-lifetime: 1800000
 
   jpa:
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "nextora:"
 
   flyway:
     enabled: true
     validate-on-migrate: true
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 server:
-  port: 8082
+  port: 8080
 
 logging:
   level:
@@ -45,4 +87,28 @@ firebase:
     enabled: true
     days-old: 30
     cron: "0 0 3 * * *"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+jmx:
+  enabled: false
+
+# Application Configuration
+app:
+  base-url: ${APP_BASE_URL}
+  mail:
+    from: ${MAIL_USERNAME:nextora.platform@gmail.com}
+    from-name: Nextora
+
+# AWS S3 Configuration
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION:eu-north-1}
+    bucket-name: ${AWS_S3_BUCKET}
 

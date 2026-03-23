@@ -60,7 +60,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .cors(); // Enable CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         if (rateLimitFilter != null) {
             http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
@@ -87,7 +87,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allow the React dev server. Add other origins in production as needed.
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("https://app.nextora.lk", "https://www.app.nextora.lk", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
